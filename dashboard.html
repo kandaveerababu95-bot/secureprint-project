@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-600 p-2 rounded-lg">
+          <i data-lucide="printer" class="text-white w-6 h-6"></i>
+        </div>
+        <h1 class="text-2xl font-bold">Dashboard</h1>
+      </div>
+
+      <div class="flex gap-3">
+        <!-- ✅ New Print Job Button -->
+        <a
+          href="upload.html"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+        >
+          <i data-lucide="plus"></i>
+          New Print Job
+        </a>
+
+        <!-- Logout -->
+        <a
+          href="login.html"
+          class="border border-red-500 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+        >
+          <i data-lucide="log-out"></i>
+          Logout
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Cards -->
+  <section class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+      <p class="text-gray-500">Total Jobs</p>
+      <p class="text-3xl font-bold text-blue-600">0</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+      <p class="text-gray-500">Pending</p>
+      <p class="text-3xl font-bold text-blue-600">0</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+      <p class="text-gray-500">Printing</p>
+      <p class="text-3xl font-bold text-purple-600">0</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+      <p class="text-gray-500">Completed</p>
+      <p class="text-3xl font-bold text-green-600">0</p>
+    </div>
+  </section>
+
+  <!-- Print Jobs Panel -->
+  <section class="max-w-7xl mx-auto px-6 pb-12">
+    <div class="bg-white rounded-xl shadow p-10 text-center">
+      <i data-lucide="printer" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
+      <p class="text-gray-500 mb-4">No print jobs yet</p>
+
+      <!-- ✅ Button also goes to upload page -->
+      <a
+        href="upload.html"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium inline-block"
+      >
+        Create Your First Print Job
+      </a>
+    </div>
+  </section>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

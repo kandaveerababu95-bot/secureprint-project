@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+.paper {
+  width: 80%;
+  height: 100px;
+  background: white;
+  position: absolute;
+  top: -120px;
+  left: 10%;
+  transition: 2s;
+}
+</style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-6">
+
+<!-- Header -->
+<div class="max-w-6xl mx-auto mb-6">
+  <div class="flex items-center gap-3">
+    <div class="p-3 bg-blue-600 rounded-xl">
+      <i data-lucide="printer" class="text-white w-6 h-6"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold">Upload Documents</h1>
+      <p class="text-gray-500">Upload text files and images for printing</p>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+
+  <!-- LEFT PANEL -->
+  <div class="md:col-span-2 bg-white rounded-2xl shadow p-6">
+
+    <h3 class="font-semibold mb-4">Select Files</h3>
+
+    <!-- Drop Zone -->
+    <div id="dropZone"
+      class="border-2 border-dashed rounded-xl p-10 text-center cursor-pointer hover:bg-gray-50">
+
+      <i data-lucide="upload" class="mx-auto w-10 h-10 text-gray-400 mb-3"></i>
+
+      <p class="font-medium">Drop files here or click to browse</p>
+      <p class="text-sm text-gray-400 mt-1">
+        Supported formats: PDF, TXT, JPG, PNG, GIF, WebP
+      </p>
+
+      <button class="mt-4 px-4 py-2 border rounded-lg">Browse Files</button>
+
+      <input type="file" id="fileInput" class="hidden"
+        accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png" multiple>
+
+      <p class="text-xs text-gray-400 mt-3">Maximum file size: 50MB per file</p>
+    </div>
+
+    <!-- Booking Controls -->
+    <div class="mt-6 grid md:grid-cols-3 gap-3">
+      <input id="username" type="text" placeholder="Enter Your Name"
+        class="border rounded-lg p-2">
+
+      <select id="printerSelect" class="border rounded-lg p-2">
+        <option value="Reception">Printer 1 - Reception</option>
+        <option value="Library">Printer 2 - Library</option>
+        <option value="Lab">Printer 3 - Lab</option>
+      </select>
+
+      <input type="datetime-local" id="bookingTime"
+        class="border rounded-lg p-2">
+    </div>
+
+    <button onclick="bookSlot()"
+      class="mt-4 w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700">
+      Upload, Book & Generate OTP
+    </button>
+
+    <h3 id="bookingMessage" class="mt-4 font-semibold text-green-600"></h3>
+
+    <!-- Bookings -->
+    <div class="mt-6">
+      <h3 class="font-semibold mb-2">My Bookings</h3>
+      <div id="myBookings" class="text-sm"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT SUMMARY -->
+  <div class="bg-white rounded-2xl shadow p-6 h-fit">
+    <h3 class="font-semibold mb-4">Summary</h3>
+
+    <p class="text-sm text-gray-500">Files Selected</p>
+    <p id="fileCount" class="text-2xl font-bold text-blue-600">0</p>
+
+    <p class="text-sm text-gray-500 mt-4">Total Size</p>
+    <p id="totalSize" class="font-semibold">0.00 MB</p>
+
+    <button id="proceedBtn"
+      class="mt-6 w-full bg-blue-300 text-white py-2 rounded-xl cursor-not-allowed"
+      disabled>
+      Proceed to Booking
+    </button>
+  </div>
+</div>
+
+<!-- ===== REAL PRINTER ===== -->
+<div class="max-w-xl mx-auto mt-10 bg-gradient-to-b from-gray-700 to-gray-900 text-white rounded-2xl p-6 shadow-xl">
+
+  <div class="font-bold mb-3">SMART IoT PRINTER</div>
+
+  <div id="statusScreen" class="bg-black text-lime-400 font-mono p-3 rounded mb-3">
+    STATUS: IDLE
+  </div>
+
+  <div class="mb-3">
+    <strong>Queue:</strong> <span id="queueCount">0</span>
+  </div>
+
+  <input id="enteredOTP" placeholder="Enter OTP"
+    class="text-black p-2 rounded mr-2">
+  <button onclick="enterOTP()" class="bg-blue-600 px-3 py-2 rounded">
+    Submit
+  </button>
+
+  <div class="relative mt-6 h-28 bg-black rounded overflow-hidden">
+    <div id="paper" class="paper"></div>
+  </div>
+</div>
+
+<script>
+lucide.createIcons();
+
+let bookings = [];
+let printQueue = [];
+let currentPrinting = null;
+
+/* ================= FILE HANDLING ================= */
+
+const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
+const fileCount = document.getElementById("fileCount");
+const totalSize = document.getElementById("totalSize");
+const proceedBtn = document.getElementById("proceedBtn");
+
+dropZone.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", handleFiles);
+
+dropZone.addEventListener("dragover", e => {
+  e.preventDefault();
+  dropZone.classList.add("bg-gray-50");
+});
+
+dropZone.addEventListener("dragleave", () => {
+  dropZone.classList.remove("bg-gray-50");
+});
+
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("bg-gray-50");
+  fileInput.files = e.dataTransfer.files;
+  handleFiles();
+});
+
+function handleFiles() {
+  const files = fileInput.files;
+  if (!files.length) return;
+
+  let total = 0;
+  const allowed = ["pdf","doc","docx","ppt","pptx","txt","jpg","jpeg","png"];
+
+  for (let f of files) {
+    const ext = f.name.split(".").pop().toLowerCase();
+    if (!allowed.includes(ext)) {
+      alert("Only document and image files allowed!");
+      fileInput.value = "";
+      return;
+    }
+    total += f.size;
+  }
+
+  fileCount.innerText = files.length;
+  totalSize.innerText = (total / (1024*1024)).toFixed(2) + " MB";
+
+  proceedBtn.disabled = false;
+  proceedBtn.classList.remove("bg-blue-300","cursor-not-allowed");
+  proceedBtn.classList.add("bg-blue-600");
+}
+
+/* ================= BOOKING ================= */
+
+function validateFile() {
+  if (!fileInput.files.length) {
+    alert("Select file");
+    return false;
+  }
+  return true;
+}
+
+function bookSlot() {
+  const name = username.value.trim();
+  const printer = printerSelect.value;
+  const time = bookingTime.value;
+
+  if (!name) return alert("Please enter your name");
+  if (!validateFile()) return;
+  if (!time) return alert("Please select date and time");
+
+  const sameSlotBookings = bookings.filter(
+    b => b.printer === printer && b.time === time && !b.cancelled
+  );
+
+  if (sameSlotBookings.length > 0) {
+    if (!confirm("Slot already booked. Continue?")) return;
+  }
+
+  const otp = Math.floor(100000 + Math.random()*900000);
+
+  const booking = { name, printer, time, otp, cancelled:false, entered:false };
+  bookings.push(booking);
+
+  bookingMessage.innerText = "Booking Confirmed! Your OTP: " + otp;
+  renderBookings();
+}
+
+function renderBookings() {
+  myBookings.innerHTML = "";
+  bookings.forEach((b,i)=>{
+    if(!b.cancelled){
+      myBookings.innerHTML += `
+        <p class="mb-1">
+          ${b.name} | ${b.printer} | ${b.time} | OTP: ${b.otp}
+          <button onclick="cancelBooking(${i})" class="text-red-500 ml-2">Cancel</button>
+        </p>`;
+    }
+  });
+}
+
+function cancelBooking(i){
+  bookings[i].cancelled=true;
+  alert("Booking Cancelled Successfully");
+  renderBookings();
+}
+
+/* ================= PRINTER ================= */
+
+function enterOTP(){
+  const entered = enteredOTP.value;
+  const booking = bookings.find(b=>b.otp==entered && !b.cancelled && !b.entered);
+
+  if(!booking){
+    statusScreen.innerText="INVALID / CANCELLED OTP ❌";
+    return;
+  }
+
+  booking.entered=true;
+  printQueue.push(booking);
+  updateQueueDisplay();
+  processQueue();
+}
+
+function updateQueueDisplay(){
+  const total = printQueue.length + (currentPrinting?1:0);
+  queueCount.innerText = total;
+}
+
+function processQueue(){
+  if(currentPrinting || printQueue.length===0) return;
+
+  currentPrinting = printQueue.shift();
+  updateQueueDisplay();
+  statusScreen.innerText="PRINTING: "+currentPrinting.name;
+  paper.style.top="10px";
+
+  setTimeout(()=>{
+    statusScreen.innerText="PRINT COMPLETED ✔";
+    paper.style.top="-120px";
+    currentPrinting=null;
+    updateQueueDisplay();
+    processQueue();
+  },3000);
+}
+</script>
+
+</body>
+</html>
