@@ -78,7 +78,7 @@
 
     <button onclick="bookSlot()"
       class="mt-4 w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700">
-      Upload, Book & Generate OTP
+      Upload, Book & Generate Passcode
     </button>
 
     <h3 id="bookingMessage" class="mt-4 font-semibold text-green-600"></h3>
@@ -121,9 +121,9 @@
     <strong>Queue:</strong> <span id="queueCount">0</span>
   </div>
 
-  <input id="enteredOTP" placeholder="Enter OTP"
+  <input id="enteredPasscode" placeholder="Enter Passcode"
     class="text-black p-2 rounded mr-2">
-  <button onclick="enterOTP()" class="bg-blue-600 px-3 py-2 rounded">
+  <button onclick="enterPasscode()" class="bg-blue-600 px-3 py-2 rounded">
     Submit
   </button>
 
@@ -148,7 +148,6 @@ const totalSize = document.getElementById("totalSize");
 const proceedBtn = document.getElementById("proceedBtn");
 
 dropZone.addEventListener("click", () => fileInput.click());
-
 fileInput.addEventListener("change", handleFiles);
 
 dropZone.addEventListener("dragover", e => {
@@ -219,12 +218,12 @@ function bookSlot() {
     if (!confirm("Slot already booked. Continue?")) return;
   }
 
-  const otp = Math.floor(100000 + Math.random()*900000);
+  const passcode = Math.floor(100000 + Math.random()*900000);
 
-  const booking = { name, printer, time, otp, cancelled:false, entered:false };
+  const booking = { name, printer, time, passcode, cancelled:false, entered:false };
   bookings.push(booking);
 
-  bookingMessage.innerText = "Booking Confirmed! Your OTP: " + otp;
+  bookingMessage.innerText = "Booking Confirmed! Your Passcode: " + passcode;
   renderBookings();
 }
 
@@ -234,7 +233,7 @@ function renderBookings() {
     if(!b.cancelled){
       myBookings.innerHTML += `
         <p class="mb-1">
-          ${b.name} | ${b.printer} | ${b.time} | OTP: ${b.otp}
+          ${b.name} | ${b.printer} | ${b.time} | Passcode: ${b.passcode}
           <button onclick="cancelBooking(${i})" class="text-red-500 ml-2">Cancel</button>
         </p>`;
     }
@@ -249,12 +248,12 @@ function cancelBooking(i){
 
 /* ================= PRINTER ================= */
 
-function enterOTP(){
-  const entered = enteredOTP.value;
-  const booking = bookings.find(b=>b.otp==entered && !b.cancelled && !b.entered);
+function enterPasscode(){
+  const entered = enteredPasscode.value;
+  const booking = bookings.find(b=>b.passcode==entered && !b.cancelled && !b.entered);
 
   if(!booking){
-    statusScreen.innerText="INVALID / CANCELLED OTP ❌";
+    statusScreen.innerText="INVALID / CANCELLED PASSCODE ❌";
     return;
   }
 
