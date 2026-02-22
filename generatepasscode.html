@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Generate Passcode</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+.paper {
+  width: 80%;
+  height: 100px;
+  background: white;
+  position: absolute;
+  top: -120px;
+  left: 10%;
+  transition: 2s;
+}
+</style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-6">
+
+<div class="max-w-xl mx-auto bg-white rounded-2xl shadow p-6">
+
+  <h1 class="text-2xl font-bold mb-4">Generate Passcode</h1>
+
+  <p class="mb-2">Files uploaded: <span id="fileCount"></span></p>
+
+  <button onclick="generatePasscode()"
+    class="w-full bg-blue-600 text-white py-2 rounded-xl">
+    Generate Passcode
+  </button>
+
+  <h3 id="passcodeMsg" class="mt-4 font-bold text-green-600"></h3>
+
+  <button onclick="cancelPrint()"
+    class="mt-3 w-full bg-red-500 text-white py-2 rounded-xl">
+    Cancel Print
+  </button>
+</div>
+
+<!-- PRINTER -->
+<div class="max-w-xl mx-auto mt-8 bg-black text-white rounded-2xl p-6">
+  <div id="statusScreen" class="text-lime-400 mb-3">STATUS: IDLE</div>
+
+  <input id="enteredPasscode" placeholder="Enter Passcode"
+    class="text-black p-2 rounded mr-2">
+
+  <button onclick="enterPasscode()" class="bg-blue-600 px-3 py-2 rounded">
+    Submit
+  </button>
+
+  <div class="relative mt-6 h-28 bg-gray-800 rounded overflow-hidden">
+    <div id="paper" class="paper"></div>
+  </div>
+</div>
+
+<script>
+let generatedPasscode = null;
+let cancelled = false;
+
+document.getElementById("fileCount").innerText =
+  localStorage.getItem("fileCount") || 0;
+
+function generatePasscode() {
+  generatedPasscode = Math.floor(100000 + Math.random()*900000);
+  passcodeMsg.innerText = "Your Passcode: " + generatedPasscode;
+}
+
+function cancelPrint() {
+  cancelled = true;
+  statusScreen.innerText = "PRINT CANCELLED ❌";
+}
+
+function enterPasscode() {
+  const entered = enteredPasscode.value;
+
+  if (cancelled) {
+    statusScreen.innerText = "PRINT WAS CANCELLED ❌";
+    return;
+  }
+
+  if (entered != generatedPasscode) {
+    statusScreen.innerText = "INVALID PASSCODE ❌";
+    return;
+  }
+
+  statusScreen.innerText = "PRINTING...";
+  paper.style.top = "10px";
+
+  setTimeout(() => {
+    statusScreen.innerText = "PRINT COMPLETED ✔";
+    paper.style.top = "-120px";
+  }, 3000);
+}
+</script>
+
+</body>
+</html>
