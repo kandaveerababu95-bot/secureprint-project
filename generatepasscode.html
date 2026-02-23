@@ -110,6 +110,29 @@
 
 </div>
 
+<!-- ⭐ CUSTOM MODAL -->
+<div id="slotModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">
+
+    <h3 class="text-lg font-bold mb-2">⚠ Slot Busy</h3>
+
+    <p id="slotMessage" class="text-gray-600 mb-6"></p>
+
+    <div class="flex gap-3">
+      <button onclick="cancelSlot()"
+        class="flex-1 bg-gray-300 py-2 rounded-xl">
+        Cancel
+      </button>
+
+      <button onclick="continueSlot()"
+        class="flex-1 bg-blue-600 text-white py-2 rounded-xl">
+        Continue
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <script>
 lucide.createIcons();
 
@@ -118,12 +141,12 @@ lucide.createIcons();
 let bookings = [];
 let printQueue = [];
 let currentPrinting = null;
+let pendingStep = null;
 
 /* ================= STEP NAV ================= */
 
 function goToStep(step){
 
-  // validation before moving from step1
   if(step === 2){
     const name = username.value.trim();
     const time = bookingTime.value;
@@ -131,7 +154,6 @@ function goToStep(step){
     if(!name) return alert("Enter your name");
     if(!time) return alert("Select booking time");
 
-    // ❌ duplicate name check
     const duplicate = bookings.find(
       b => b.name.toLowerCase() === name.toLowerCase() && !b.cancelled
     );
@@ -147,17 +169,35 @@ function goToStep(step){
       return alert("❌ Slot full (max 3 users). Choose another time.");
     }
 
-    // ⭐ NEW FEATURE: warning if slot already has users
+    // ⭐ SHOW POPUP for B and C
     if(slotCount > 0){
-      const proceed = confirm(
-        `⚠ Already ${slotCount} member(s) booked this slot.\n\nDo you want to continue?`
-      );
-      if(!proceed) return; // stay on step1
+      slotMessage.innerText =
+        `${slotCount} member${slotCount>1?'s':''} already exist in the queue for this time slot.`;
+
+      pendingStep = step;
+      slotModal.classList.remove("hidden");
+      slotModal.classList.add("flex");
+      return;
     }
   }
 
   document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
   document.getElementById("step"+step).classList.remove("hiddenStep");
+}
+
+/* ================= MODAL ================= */
+
+function continueSlot(){
+  slotModal.classList.add("hidden");
+  slotModal.classList.remove("flex");
+
+  document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
+  document.getElementById("step"+pendingStep).classList.remove("hiddenStep");
+}
+
+function cancelSlot(){
+  slotModal.classList.add("hidden");
+  slotModal.classList.remove("flex");
 }
 
 /* ================= PASSCODE ================= */
@@ -251,5 +291,6 @@ function processQueue(){
 
 </body>
 </html>
+
 
 
