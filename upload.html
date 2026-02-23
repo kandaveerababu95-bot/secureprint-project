@@ -55,7 +55,6 @@
 
       <button class="mt-4 px-4 py-2 border rounded-lg">Browse Files</button>
 
-      <!-- ✅ STRICT FILE FILTER -->
       <input type="file" id="fileInput" class="hidden"
         accept=".txt,.pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp"
         multiple>
@@ -63,11 +62,22 @@
       <p class="text-xs text-gray-400 mt-3">Maximum file size: 50MB per file</p>
     </div>
 
-    <button id="proceedBtn"
-      class="mt-6 w-full bg-blue-300 text-white py-2 rounded-xl cursor-not-allowed"
-      disabled>
-      Proceed to Generate Passcode
-    </button>
+    <!-- ✅ TWO ACTION BUTTONS -->
+    <div class="mt-6 grid md:grid-cols-2 gap-4">
+
+      <button id="bookSlotBtn"
+        class="w-full bg-blue-300 text-white py-2 rounded-xl cursor-not-allowed"
+        disabled>
+        Proceed to Book a Slot
+      </button>
+
+      <button id="viewFilesBtn"
+        class="w-full bg-gray-300 text-white py-2 rounded-xl cursor-not-allowed"
+        disabled>
+        View Files
+      </button>
+
+    </div>
 
   </div>
 
@@ -92,7 +102,8 @@ const fileInput = document.getElementById("fileInput");
 const dropZone = document.getElementById("dropZone");
 const fileCount = document.getElementById("fileCount");
 const totalSize = document.getElementById("totalSize");
-const proceedBtn = document.getElementById("proceedBtn");
+const bookSlotBtn = document.getElementById("bookSlotBtn");
+const viewFilesBtn = document.getElementById("viewFilesBtn");
 
 dropZone.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", handleFiles);
@@ -113,7 +124,7 @@ dropZone.addEventListener("drop", e => {
   handleFiles();
 });
 
-/* ✅ STRICT VALIDATION — TEXT + IMAGE ONLY */
+/* ✅ STRICT VALIDATION */
 function handleFiles() {
   const files = fileInput.files;
   if (!files.length) return;
@@ -129,7 +140,7 @@ function handleFiles() {
     const ext = f.name.split(".").pop().toLowerCase();
 
     if (!allowed.includes(ext)) {
-      alert("❌ Only TEXT and IMAGE files are allowed.\nAudio and Video files are NOT permitted.");
+      alert("❌ Only TEXT and IMAGE files are allowed.");
       resetUI();
       return;
     }
@@ -140,9 +151,19 @@ function handleFiles() {
   fileCount.innerText = files.length;
   totalSize.innerText = (total / (1024*1024)).toFixed(2) + " MB";
 
-  proceedBtn.disabled = false;
-  proceedBtn.classList.remove("bg-blue-300","cursor-not-allowed");
-  proceedBtn.classList.add("bg-blue-600");
+  // ✅ enable buttons
+  enableButtons();
+}
+
+function enableButtons() {
+  bookSlotBtn.disabled = false;
+  viewFilesBtn.disabled = false;
+
+  bookSlotBtn.classList.remove("bg-blue-300","cursor-not-allowed");
+  bookSlotBtn.classList.add("bg-blue-600");
+
+  viewFilesBtn.classList.remove("bg-gray-300","cursor-not-allowed");
+  viewFilesBtn.classList.add("bg-gray-700");
 }
 
 /* ✅ Reset if invalid */
@@ -150,46 +171,57 @@ function resetUI(){
   fileInput.value = "";
   fileCount.innerText = "0";
   totalSize.innerText = "0.00 MB";
-  proceedBtn.disabled = true;
-  proceedBtn.classList.add("bg-blue-300","cursor-not-allowed");
-  proceedBtn.classList.remove("bg-blue-600");
+
+  bookSlotBtn.disabled = true;
+  viewFilesBtn.disabled = true;
 }
 
-/* 🔥🔥🔥 SAVE JOBS FOR DASHBOARD (THIS WAS MISSING) */
+/* 🔥 SAVE JOBS FOR DASHBOARD */
 function savePrintJobs(files) {
   let jobs = JSON.parse(localStorage.getItem("printJobs") || "[]");
 
-  for (let f of files) {
+  Array.from(files).forEach((f, index) => {
     jobs.push({
-      id: Date.now() + Math.random(),
+      id: Date.now() + index,
       fileName: f.name,
       status: "pending",
       createdAt: new Date().toISOString()
     });
-  }
+  });
 
   localStorage.setItem("printJobs", JSON.stringify(jobs));
 }
 
-/* ✅ Proceed button */
-proceedBtn.addEventListener("click", () => {
-  if (!fileInput.files.length) {
-    alert("Please select files first");
-    return;
-  }
+/* ================= BUTTON ACTIONS ================= */
 
-  // ✅ SAVE TO DASHBOARD STORAGE
+// ✅ Proceed → generate passcode
+bookSlotBtn.addEventListener("click", () => {
+  if (!fileInput.files.length) return;
+
   savePrintJobs(fileInput.files);
-
-  // keep your existing behavior
-  localStorage.setItem("fileCount", fileInput.files.length);
+  localStorage.setItem("uploadedFiles", JSON.stringify(
+    Array.from(fileInput.files).map(f => ({ name: f.name, size: f.size }))
+  ));
 
   window.location.href = "generatepasscode.html";
+});
+
+// ✅ View files → review page
+viewFilesBtn.addEventListener("click", () => {
+  if (!fileInput.files.length) return;
+
+  localStorage.setItem("uploadedFiles", JSON.stringify(
+    Array.from(fileInput.files).map(f => ({ name: f.name, size: f.size }))
+  ));
+
+  window.location.href = "reviewfiles.html";
 });
 </script>
 
 </body>
 </html>
+
+
 
 
 
