@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication</title>
+<title>Smart Printer Booking</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
+.hiddenStep { display:none; }
+
 .paper {
   width: 80%;
   height: 100px;
@@ -22,172 +24,191 @@
 
 <body class="bg-gray-100 min-h-screen p-6">
 
-<!-- Header -->
-<div class="max-w-6xl mx-auto mb-6">
-  <div class="flex items-center gap-3">
-    <div class="p-3 bg-blue-600 rounded-xl">
-      <i data-lucide="printer" class="text-white w-6 h-6"></i>
-    </div>
-    <div>
-      <h1 class="text-2xl font-bold">Book a Printer</h1>
-      <p class="text-gray-500">Reserve a printer with a secure passcode</p>
-    </div>
+<div class="max-w-3xl mx-auto bg-white rounded-2xl shadow p-6">
+
+<!-- HEADER -->
+<div class="flex items-center gap-3 mb-6">
+  <div class="p-3 bg-blue-600 rounded-xl">
+    <i data-lucide="printer" class="text-white w-6 h-6"></i>
   </div>
+  <h1 class="text-2xl font-bold">Smart Printer Booking</h1>
 </div>
 
-<div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
+<!-- ================= STEP 1 ================= -->
+<div id="step1">
+  <h2 class="font-semibold mb-3">Step 1: Select Printer</h2>
 
-  <!-- LEFT PANEL -->
-  <div class="md:col-span-2 bg-white rounded-2xl shadow p-6">
+  <input id="username" placeholder="Enter Your Name"
+    class="border rounded-lg p-2 w-full mb-3">
 
-    <!-- Booking Controls -->
-    <div class="mt-6 grid md:grid-cols-3 gap-3">
-      <input id="username" type="text" placeholder="Enter Your Name"
-        class="border rounded-lg p-2">
+  <select id="printerSelect" class="border rounded-lg p-2 w-full mb-4">
+    <option value="Reception">Printer 1 - Reception</option>
+    <option value="Library">Printer 2 - Library</option>
+    <option value="Lab">Printer 3 - Lab</option>
+  </select>
 
-      <select id="printerSelect" class="border rounded-lg p-2">
-        <option value="Reception">Printer 1 - Reception</option>
-        <option value="Library">Printer 2 - Library</option>
-        <option value="Lab">Printer 3 - Lab</option>
-      </select>
+  <button onclick="goToStep(2)"
+    class="w-full bg-blue-600 text-white py-2 rounded-xl">
+    Next →
+  </button>
+</div>
 
-      <input type="datetime-local" id="bookingTime"
-        class="border rounded-lg p-2">
+<!-- ================= STEP 2 ================= -->
+<div id="step2" class="hiddenStep">
+  <h2 class="font-semibold mb-3">Step 2: Select Time Slot</h2>
+
+  <input type="datetime-local" id="bookingTime"
+    class="border rounded-lg p-2 w-full mb-4">
+
+  <button onclick="generatePasscode()"
+    class="w-full bg-blue-600 text-white py-2 rounded-xl">
+    Generate Passcode →
+  </button>
+</div>
+
+<!-- ================= STEP 3 ================= -->
+<div id="step3" class="hiddenStep">
+  <h2 class="font-semibold mb-3">Step 3: Your Passcode</h2>
+
+  <div id="passcodeBox"
+    class="text-center text-3xl font-bold text-green-600 mb-4"></div>
+
+  <button onclick="goToStep(4)"
+    class="w-full bg-blue-600 text-white py-2 rounded-xl">
+    Go to Printer →
+  </button>
+</div>
+
+<!-- ================= STEP 4 ================= -->
+<div id="step4" class="hiddenStep">
+
+  <div class="bg-gradient-to-b from-gray-700 to-gray-900 text-white rounded-2xl p-6 shadow-xl">
+
+    <div class="font-bold mb-3">SMART IoT PRINTER</div>
+
+    <div id="statusScreen"
+      class="bg-black text-lime-400 font-mono p-3 rounded mb-3">
+      STATUS: IDLE
     </div>
 
-    <button onclick="bookSlot()"
-      class="mt-4 w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700">
-      Book & Generate Passcode
+    <div class="mb-3">
+      <strong>Queue:</strong> <span id="queueCount">0</span>
+    </div>
+
+    <input id="enteredPasscode" placeholder="Enter Passcode"
+      class="text-black p-2 rounded mr-2">
+    <button onclick="enterPasscode()" class="bg-blue-600 px-3 py-2 rounded">
+      Submit
     </button>
 
-    <h3 id="bookingMessage" class="mt-4 font-semibold text-green-600"></h3>
-
-    <!-- Bookings -->
-    <div class="mt-6">
-      <h3 class="font-semibold mb-2">My Bookings</h3>
-      <div id="myBookings" class="text-sm"></div>
+    <div class="relative mt-6 h-28 bg-black rounded overflow-hidden">
+      <div id="paper" class="paper"></div>
     </div>
-  </div>
 
-  <!-- RIGHT SUMMARY -->
-  <div class="bg-white rounded-2xl shadow p-6 h-fit">
-    <h3 class="font-semibold mb-4">Summary</h3>
-    <p class="text-sm text-gray-500">Total Bookings</p>
-    <p id="queueCount" class="text-2xl font-bold text-blue-600">0</p>
   </div>
 </div>
 
-<!-- ===== REAL PRINTER ===== -->
-<div class="max-w-xl mx-auto mt-10 bg-gradient-to-b from-gray-700 to-gray-900 text-white rounded-2xl p-6 shadow-xl">
-
-  <div class="font-bold mb-3">SMART IoT PRINTER</div>
-
-  <div id="statusScreen" class="bg-black text-lime-400 font-mono p-3 rounded mb-3">
-    STATUS: IDLE
-  </div>
-
-  <div class="mb-3">
-    <strong>Queue:</strong> <span id="queueCount">0</span>
-  </div>
-
-  <input id="enteredPasscode" placeholder="Enter Passcode"
-    class="text-black p-2 rounded mr-2">
-  <button onclick="enterPasscode()" class="bg-blue-600 px-3 py-2 rounded">
-    Submit
-  </button>
-
-  <div class="relative mt-6 h-28 bg-black rounded overflow-hidden">
-    <div id="paper" class="paper"></div>
-  </div>
 </div>
 
 <script>
 lucide.createIcons();
 
+/* ================= DATA ================= */
+
 let bookings = [];
 let printQueue = [];
 let currentPrinting = null;
+let tempBooking = null;
 
-/* ================= BOOKING ================= */
+/* ================= STEP NAV ================= */
 
-function bookSlot() {
+function goToStep(step){
+  document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
+  document.getElementById("step"+step).classList.remove("hiddenStep");
+}
+
+/* ================= PASSCODE GENERATION ================= */
+
+function generatePasscode(){
+
   const name = username.value.trim();
   const printer = printerSelect.value;
   const time = bookingTime.value;
 
-  if (!name) return alert("Please enter your name");
-  if (!time) return alert("Please select date and time");
-
-  const sameSlotBookings = bookings.filter(
-    b => b.printer === printer && b.time === time && !b.cancelled
-  );
-
-  if (sameSlotBookings.length > 0) {
-    if (!confirm("Slot already booked. Continue?")) return;
-  }
+  if(!name) return alert("Enter your name");
+  if(!time) return alert("Select booking time");
 
   const passcode = Math.floor(100000 + Math.random()*900000);
 
-  const booking = { name, printer, time, passcode, cancelled:false, entered:false };
-  bookings.push(booking);
+  tempBooking = {
+    name,
+    printer,
+    time,
+    passcode,
+    entered:false,
+    cancelled:false
+  };
 
-  bookingMessage.innerText = "Booking Confirmed! Your Passcode: " + passcode;
-  renderBookings();
-}
+  bookings.push(tempBooking);
 
-function renderBookings() {
-  myBookings.innerHTML = "";
-  bookings.forEach((b,i)=>{
-    if(!b.cancelled){
-      myBookings.innerHTML += `
-        <p class="mb-1">
-          ${b.name} | ${b.printer} | ${b.time} | Passcode: ${b.passcode}
-          <button onclick="cancelBooking(${i})" class="text-red-500 ml-2">Cancel</button>
-        </p>`;
-    }
-  });
-}
+  passcodeBox.innerText = passcode;
 
-function cancelBooking(i){
-  bookings[i].cancelled=true;
-  alert("Booking Cancelled Successfully");
-  renderBookings();
+  goToStep(3);
 }
 
 /* ================= PRINTER ================= */
 
 function enterPasscode(){
-  const entered = enteredPasscode.value;
-  const booking = bookings.find(b=>b.passcode==entered && !b.cancelled && !b.entered);
+
+  const entered = enteredPasscode.value.trim();
+
+  const booking = bookings.find(
+    b => b.passcode == entered && !b.entered && !b.cancelled
+  );
 
   if(!booking){
-    statusScreen.innerText="INVALID / CANCELLED PASSCODE ❌";
+    statusScreen.innerText = "INVALID PASSCODE ❌";
     return;
   }
 
-  booking.entered=true;
+  // 🔥 TIME CHECK (IMPORTANT)
+  const now = new Date();
+  const bookingTimeObj = new Date(booking.time);
+
+  if(now < bookingTimeObj){
+    statusScreen.innerText =
+      "⏳ Too early! Print at: " +
+      bookingTimeObj.toLocaleTimeString();
+    return;
+  }
+
+  booking.entered = true;
   printQueue.push(booking);
   updateQueueDisplay();
   processQueue();
 }
 
+/* ================= QUEUE ================= */
+
 function updateQueueDisplay(){
   const total = printQueue.length + (currentPrinting?1:0);
-  document.querySelectorAll("#queueCount").forEach(el=>el.innerText=total);
+  queueCount.innerText = total;
 }
 
 function processQueue(){
+
   if(currentPrinting || printQueue.length===0) return;
 
   currentPrinting = printQueue.shift();
   updateQueueDisplay();
-  statusScreen.innerText="PRINTING: "+currentPrinting.name;
-  paper.style.top="10px";
+
+  statusScreen.innerText = "PRINTING: " + currentPrinting.name;
+  paper.style.top = "10px";
 
   setTimeout(()=>{
-    statusScreen.innerText="PRINT COMPLETED ✔";
-    paper.style.top="-120px";
-    currentPrinting=null;
+    statusScreen.innerText = "PRINT COMPLETED ✔";
+    paper.style.top = "-120px";
+    currentPrinting = null;
     updateQueueDisplay();
     processQueue();
   },3000);
@@ -196,3 +217,4 @@ function processQueue(){
 
 </body>
 </html>
+
