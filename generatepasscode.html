@@ -22,9 +22,11 @@
 </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen p-6">
+<!-- ✅ CENTERED BODY -->
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
 
-<div class="max-w-3xl mx-auto bg-white rounded-2xl shadow p-6">
+<!-- ✅ CENTERED CARD -->
+<div class="w-full max-w-3xl bg-white rounded-2xl shadow p-6">
 
 <!-- HEADER -->
 <div class="flex items-center gap-3 mb-6">
@@ -34,18 +36,15 @@
   <h1 class="text-2xl font-bold">Smart Printer Booking</h1>
 </div>
 
-<!-- ================= STEP 1 ================= -->
+<!-- ================= STEP 1 (TIME FIRST) ================= -->
 <div id="step1">
-  <h2 class="font-semibold mb-3">Step 1: Select Printer</h2>
+  <h2 class="font-semibold mb-3">Step 1: Book Time Slot</h2>
 
   <input id="username" placeholder="Enter Your Name"
     class="border rounded-lg p-2 w-full mb-3">
 
-  <select id="printerSelect" class="border rounded-lg p-2 w-full mb-4">
-    <option value="Reception">Printer 1 - Reception</option>
-    <option value="Library">Printer 2 - Library</option>
-    <option value="Lab">Printer 3 - Lab</option>
-  </select>
+  <input type="datetime-local" id="bookingTime"
+    class="border rounded-lg p-2 w-full mb-4">
 
   <button onclick="goToStep(2)"
     class="w-full bg-blue-600 text-white py-2 rounded-xl">
@@ -55,10 +54,13 @@
 
 <!-- ================= STEP 2 ================= -->
 <div id="step2" class="hiddenStep">
-  <h2 class="font-semibold mb-3">Step 2: Select Time Slot</h2>
+  <h2 class="font-semibold mb-3">Step 2: Select Printer</h2>
 
-  <input type="datetime-local" id="bookingTime"
-    class="border rounded-lg p-2 w-full mb-4">
+  <select id="printerSelect" class="border rounded-lg p-2 w-full mb-4">
+    <option value="Reception">Printer 1 - Reception</option>
+    <option value="Library">Printer 2 - Library</option>
+    <option value="Lab">Printer 3 - Lab</option>
+  </select>
 
   <button onclick="generatePasscode()"
     class="w-full bg-blue-600 text-white py-2 rounded-xl">
@@ -118,16 +120,40 @@ lucide.createIcons();
 let bookings = [];
 let printQueue = [];
 let currentPrinting = null;
-let tempBooking = null;
 
 /* ================= STEP NAV ================= */
 
 function goToStep(step){
+
+  // validation before moving from step1
+  if(step === 2){
+    const name = username.value.trim();
+    const time = bookingTime.value;
+
+    if(!name) return alert("Enter your name");
+    if(!time) return alert("Select booking time");
+
+    // ❌ duplicate name check
+    const duplicate = bookings.find(
+      b => b.name.toLowerCase() === name.toLowerCase() && !b.cancelled
+    );
+    if(duplicate) return alert("This name already has an active booking");
+
+    // ❌ only 3 users per slot
+    const slotCount = bookings.filter(
+      b => b.time === time && !b.cancelled
+    ).length;
+
+    if(slotCount >= 3){
+      return alert("❌ Slot full (max 3 users). Choose another time.");
+    }
+  }
+
   document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
   document.getElementById("step"+step).classList.remove("hiddenStep");
 }
 
-/* ================= PASSCODE GENERATION ================= */
+/* ================= PASSCODE ================= */
 
 function generatePasscode(){
 
@@ -135,24 +161,18 @@ function generatePasscode(){
   const printer = printerSelect.value;
   const time = bookingTime.value;
 
-  if(!name) return alert("Enter your name");
-  if(!time) return alert("Select booking time");
-
   const passcode = Math.floor(100000 + Math.random()*900000);
 
-  tempBooking = {
+  bookings.push({
     name,
     printer,
     time,
     passcode,
     entered:false,
     cancelled:false
-  };
-
-  bookings.push(tempBooking);
+  });
 
   passcodeBox.innerText = passcode;
-
   goToStep(3);
 }
 
@@ -171,14 +191,23 @@ function enterPasscode(){
     return;
   }
 
-  // 🔥 TIME CHECK (IMPORTANT)
   const now = new Date();
-  const bookingTimeObj = new Date(booking.time);
+  const start = new Date(booking.time);
+  const expiry = new Date(start.getTime() + 10*60000); // +10 minutes
 
-  if(now < bookingTimeObj){
+  // ❌ before time
+  if(now < start){
     statusScreen.innerText =
       "⏳ Too early! Print at: " +
-      bookingTimeObj.toLocaleTimeString();
+      start.toLocaleTimeString();
+    return;
+  }
+
+  // ❌ after expiry
+  if(now > expiry){
+    booking.cancelled = true;
+    alert("Duration time has completed. Please book another slot.");
+    statusScreen.innerText = "❌ SLOT EXPIRED";
     return;
   }
 
