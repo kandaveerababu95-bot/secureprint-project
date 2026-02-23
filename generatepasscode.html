@@ -22,10 +22,8 @@
 </style>
 </head>
 
-<!-- ✅ CENTERED BODY -->
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
 
-<!-- ✅ CENTERED CARD -->
 <div class="w-full max-w-3xl bg-white rounded-2xl shadow p-6">
 
 <!-- HEADER -->
@@ -36,7 +34,7 @@
   <h1 class="text-2xl font-bold">Smart Printer Booking</h1>
 </div>
 
-<!-- ================= STEP 1 (TIME FIRST) ================= -->
+<!-- ================= STEP 1 ================= -->
 <div id="step1">
   <h2 class="font-semibold mb-3">Step 1: Book Time Slot</h2>
 
@@ -139,13 +137,22 @@ function goToStep(step){
     );
     if(duplicate) return alert("This name already has an active booking");
 
-    // ❌ only 3 users per slot
+    // count users in same slot
     const slotCount = bookings.filter(
       b => b.time === time && !b.cancelled
     ).length;
 
+    // ❌ slot full
     if(slotCount >= 3){
       return alert("❌ Slot full (max 3 users). Choose another time.");
+    }
+
+    // ⭐ NEW FEATURE: warning if slot already has users
+    if(slotCount > 0){
+      const proceed = confirm(
+        `⚠ Already ${slotCount} member(s) booked this slot.\n\nDo you want to continue?`
+      );
+      if(!proceed) return; // stay on step1
     }
   }
 
@@ -193,9 +200,8 @@ function enterPasscode(){
 
   const now = new Date();
   const start = new Date(booking.time);
-  const expiry = new Date(start.getTime() + 10*60000); // +10 minutes
+  const expiry = new Date(start.getTime() + 10*60000);
 
-  // ❌ before time
   if(now < start){
     statusScreen.innerText =
       "⏳ Too early! Print at: " +
@@ -203,7 +209,6 @@ function enterPasscode(){
     return;
   }
 
-  // ❌ after expiry
   if(now > expiry){
     booking.cancelled = true;
     alert("Duration time has completed. Please book another slot.");
@@ -246,4 +251,5 @@ function processQueue(){
 
 </body>
 </html>
+
 
