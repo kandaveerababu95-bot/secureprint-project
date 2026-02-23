@@ -74,8 +74,14 @@
     class="text-center text-3xl font-bold text-green-600 mb-4"></div>
 
   <button onclick="goToStep(4)"
-    class="w-full bg-blue-600 text-white py-2 rounded-xl">
+    class="w-full bg-blue-600 text-white py-2 rounded-xl mb-2">
     Go to Printer →
+  </button>
+
+  <!-- ⭐ NEW BUTTON (IMPORTANT) -->
+  <button onclick="resetToStep1()"
+    class="w-full bg-gray-300 py-2 rounded-xl">
+    Book Another Slot
   </button>
 </div>
 
@@ -159,17 +165,14 @@ function goToStep(step){
     );
     if(duplicate) return alert("This name already has an active booking");
 
-    // count users in same slot
     const slotCount = bookings.filter(
       b => b.time === time && !b.cancelled
     ).length;
 
-    // ❌ slot full
     if(slotCount >= 3){
       return alert("❌ Slot full (max 3 users). Choose another time.");
     }
 
-    // ⭐ SHOW POPUP for B and C
     if(slotCount > 0){
       slotMessage.innerText =
         `${slotCount} member${slotCount>1?'s':''} already exist in the queue for this time slot.`;
@@ -183,6 +186,15 @@ function goToStep(step){
 
   document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
   document.getElementById("step"+step).classList.remove("hiddenStep");
+}
+
+/* ================= RESET WITHOUT REFRESH ================= */
+
+function resetToStep1(){
+  username.value = "";
+  bookingTime.value = "";
+  enteredPasscode.value = "";
+  goToStep(1);
 }
 
 /* ================= MODAL ================= */
@@ -291,6 +303,7 @@ function processQueue(){
 
 </body>
 </html>
+
 
 
 
