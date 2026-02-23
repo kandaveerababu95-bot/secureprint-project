@@ -12,7 +12,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen flex flex-col">
 
   <!-- Header -->
   <header class="bg-white shadow-sm">
@@ -25,7 +25,7 @@
       </div>
 
       <div class="flex gap-3">
-        <!-- ✅ New Print Job Button -->
+        <!-- New Print Job -->
         <a
           href="upload.html"
           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2"
@@ -46,48 +46,88 @@
     </div>
   </header>
 
-  <!-- Stats Cards -->
-  <section class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+  <!-- MAIN CONTENT (CENTERED) -->
+  <main class="flex-1 flex flex-col justify-center">
 
-    <div class="bg-white rounded-xl shadow p-6 text-center">
-      <p class="text-gray-500">Total Jobs</p>
-      <p class="text-3xl font-bold text-blue-600">0</p>
-    </div>
+    <!-- Stats Cards -->
+    <section class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-6 w-full">
 
-    <div class="bg-white rounded-xl shadow p-6 text-center">
-      <p class="text-gray-500">Pending</p>
-      <p class="text-3xl font-bold text-blue-600">0</p>
-    </div>
+      <div class="bg-white rounded-xl shadow p-6 text-center">
+        <p class="text-gray-500">Total Jobs</p>
+        <p id="totalJobs" class="text-3xl font-bold text-blue-600">0</p>
+      </div>
 
-    <div class="bg-white rounded-xl shadow p-6 text-center">
-      <p class="text-gray-500">Printing</p>
-      <p class="text-3xl font-bold text-purple-600">0</p>
-    </div>
+      <div class="bg-white rounded-xl shadow p-6 text-center">
+        <p class="text-gray-500">Pending</p>
+        <p id="pendingJobs" class="text-3xl font-bold text-blue-600">0</p>
+      </div>
 
-    <div class="bg-white rounded-xl shadow p-6 text-center">
-      <p class="text-gray-500">Completed</p>
-      <p class="text-3xl font-bold text-green-600">0</p>
-    </div>
-  </section>
+      <div class="bg-white rounded-xl shadow p-6 text-center">
+        <p class="text-gray-500">Printing</p>
+        <p id="printingJobs" class="text-3xl font-bold text-purple-600">0</p>
+      </div>
 
-  <!-- Print Jobs Panel -->
-  <section class="max-w-7xl mx-auto px-6 pb-12">
-    <div class="bg-white rounded-xl shadow p-10 text-center">
-      <i data-lucide="printer" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
-      <p class="text-gray-500 mb-4">No print jobs yet</p>
+      <div class="bg-white rounded-xl shadow p-6 text-center">
+        <p class="text-gray-500">Completed</p>
+        <p id="completedJobs" class="text-3xl font-bold text-green-600">0</p>
+      </div>
 
-      <!-- ✅ Button also goes to upload page -->
-      <a
-        href="upload.html"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium inline-block"
-      >
-        Create Your First Print Job
-      </a>
-    </div>
-  </section>
+    </section>
+
+    <!-- Print Jobs Panel -->
+    <section class="max-w-7xl mx-auto px-6 pb-12 w-full">
+      <div id="emptyState" class="bg-white rounded-xl shadow p-10 text-center">
+        <i data-lucide="printer" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
+        <p class="text-gray-500 mb-4">No print jobs yet</p>
+
+        <a
+          href="upload.html"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium inline-block"
+        >
+          Create Your First Print Job
+        </a>
+      </div>
+    </section>
+
+  </main>
 
   <script>
     lucide.createIcons();
+
+    /* ================= DASHBOARD LOADER ================= */
+
+    function loadDashboard() {
+      const jobs = JSON.parse(localStorage.getItem("printJobs") || "[]");
+
+      let pending = 0;
+      let printing = 0;
+      let completed = 0;
+
+      jobs.forEach(job => {
+        if (job.status === "pending") pending++;
+        else if (job.status === "printing") printing++;
+        else if (job.status === "completed") completed++;
+      });
+
+      // update counters
+      document.getElementById("totalJobs").innerText = jobs.length;
+      document.getElementById("pendingJobs").innerText = pending;
+      document.getElementById("printingJobs").innerText = printing;
+      document.getElementById("completedJobs").innerText = completed;
+
+      // hide empty state if jobs exist
+      if (jobs.length > 0) {
+        document.getElementById("emptyState").style.display = "none";
+      }
+    }
+
+    // run on load
+    loadDashboard();
+
+    /* 🔥 OPTIONAL: realtime refresh every 2 seconds */
+    setInterval(loadDashboard, 2000);
   </script>
+
 </body>
 </html>
+
