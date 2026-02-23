@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Review Files</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-6">
+
+<!-- Header -->
+<div class="max-w-5xl mx-auto mb-6">
+  <div class="flex items-center gap-3">
+    <div class="p-3 bg-blue-600 rounded-xl">
+      <i data-lucide="file-text" class="text-white w-6 h-6"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold">Review Files</h1>
+      <p class="text-gray-500">Add or remove files before generating passcode</p>
+    </div>
+  </div>
+</div>
+
+<!-- Main Card -->
+<div class="max-w-5xl mx-auto bg-white rounded-2xl shadow p-6">
+
+  <!-- Summary -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <p class="text-gray-500 text-sm">Total Files</p>
+      <p id="fileCount" class="text-3xl font-bold text-blue-600">0</p>
+    </div>
+
+    <button id="addMoreBtn"
+      class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg">
+      <i data-lucide="plus"></i>
+      Add More Files
+    </button>
+
+    <input type="file" id="fileInput" class="hidden"
+      accept=".txt,.pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp"
+      multiple>
+  </div>
+
+  <!-- File List -->
+  <div id="fileList" class="space-y-3"></div>
+
+  <!-- Continue -->
+  <button id="continueBtn"
+    class="mt-8 w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold">
+    proceed to book a slot
+  </button>
+
+</div>
+
+<script>
+lucide.createIcons();
+
+/* ================= STORAGE ================= */
+
+let selectedFiles = JSON.parse(localStorage.getItem("selectedFiles") || "[]");
+
+const fileList = document.getElementById("fileList");
+const fileCount = document.getElementById("fileCount");
+const addMoreBtn = document.getElementById("addMoreBtn");
+const fileInput = document.getElementById("fileInput");
+
+/* ================= RENDER ================= */
+
+function renderFiles() {
+  fileList.innerHTML = "";
+  fileCount.innerText = selectedFiles.length;
+
+  if (selectedFiles.length === 0) {
+    fileList.innerHTML =
+      '<p class="text-gray-400 text-center">No files selected</p>';
+    return;
+  }
+
+  selectedFiles.forEach((file, index) => {
+    const row = document.createElement("div");
+    row.className =
+      "flex justify-between items-center border rounded-lg p-3";
+
+    row.innerHTML = `
+      <div class="flex items-center gap-3">
+        <i data-lucide="file" class="w-5 h-5 text-gray-500"></i>
+        <span class="font-medium">${file.name}</span>
+      </div>
+
+      <button onclick="deleteFile(${index})"
+        class="text-red-600 hover:text-red-800">
+        <i data-lucide="trash-2"></i>
+      </button>
+    `;
+
+    fileList.appendChild(row);
+  });
+
+  lucide.createIcons();
+}
+
+/* ================= DELETE ================= */
+
+function deleteFile(index) {
+  selectedFiles.splice(index, 1);
+  localStorage.setItem("selectedFiles", JSON.stringify(selectedFiles));
+  renderFiles();
+}
+
+/* ================= ADD MORE ================= */
+
+addMoreBtn.addEventListener("click", () => fileInput.click());
+
+fileInput.addEventListener("change", () => {
+  const allowed = [
+    "txt","pdf","doc","docx","ppt","pptx",
+    "jpg","jpeg","png","gif","webp"
+  ];
+
+  Array.from(fileInput.files).forEach(file => {
+    const ext = file.name.split(".").pop().toLowerCase();
+
+    if (!allowed.includes(ext)) {
+      alert("Only text and image files allowed");
+      return;
+    }
+
+    selectedFiles.push({
+      name: file.name,
+      size: file.size
+    });
+  });
+
+  localStorage.setItem("selectedFiles", JSON.stringify(selectedFiles));
+  renderFiles();
+});
+
+/* ================= CONTINUE ================= */
+
+document.getElementById("continueBtn").addEventListener("click", () => {
+  if (selectedFiles.length === 0) {
+    alert("Please add at least one file");
+    return;
+  }
+
+  // 🔥 SAVE TO DASHBOARD
+  let jobs = JSON.parse(localStorage.getItem("printJobs") || "[]");
+
+  selectedFiles.forEach((f, index) => {
+    jobs.push({
+      id: Date.now() + index,
+      fileName: f.name,
+      status: "pending",
+      createdAt: new Date().toISOString()
+    });
+  });
+
+  localStorage.setItem("printJobs", JSON.stringify(jobs));
+
+  window.location.href = "generatepasscode.html";
+});
+
+/* ================= INIT ================= */
+
+renderFiles();
+</script>
+
+</body>
+</html>
