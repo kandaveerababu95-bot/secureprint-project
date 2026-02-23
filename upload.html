@@ -50,7 +50,7 @@
 
       <p class="font-medium">Drop files here or click to browse</p>
       <p class="text-sm text-gray-400 mt-1">
-        Supported formats: PDF, TXT, DOC, Images only
+        Supported formats: TEXT and Images only
       </p>
 
       <button class="mt-4 px-4 py-2 border rounded-lg">Browse Files</button>
@@ -155,20 +155,42 @@ function resetUI(){
   proceedBtn.classList.remove("bg-blue-600");
 }
 
-/* ✅ Redirect to passcode page */
+/* 🔥🔥🔥 SAVE JOBS FOR DASHBOARD (THIS WAS MISSING) */
+function savePrintJobs(files) {
+  let jobs = JSON.parse(localStorage.getItem("printJobs") || "[]");
+
+  for (let f of files) {
+    jobs.push({
+      id: Date.now() + Math.random(),
+      fileName: f.name,
+      status: "pending",
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  localStorage.setItem("printJobs", JSON.stringify(jobs));
+}
+
+/* ✅ Proceed button */
 proceedBtn.addEventListener("click", () => {
   if (!fileInput.files.length) {
     alert("Please select files first");
     return;
   }
 
+  // ✅ SAVE TO DASHBOARD STORAGE
+  savePrintJobs(fileInput.files);
+
+  // keep your existing behavior
   localStorage.setItem("fileCount", fileInput.files.length);
+
   window.location.href = "generatepasscode.html";
 });
 </script>
 
 </body>
 </html>
+
 
 
 
