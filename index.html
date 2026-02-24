@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SecurePrint Login</title>
+  <title>
+    A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication
+  </title>
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,12 +13,26 @@
   <!-- Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Firebase SDK -->
+  <!-- Google Identity -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- 🔥 Firebase SDK (Compat version for simpler integration) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-white via-white to-blue-50 flex items-center justify-center p-4">
+
+  <!-- TEAM INFO -->
+  <div class="fixed bottom-4 right-4 bg-white/90 backdrop-blur-md shadow-lg rounded-xl p-4 text-xs w-64 border">
+    <h3 class="font-bold text-sm mb-2 text-blue-700">Batch - C7</h3>
+    <ul class="space-y-1 text-gray-700">
+      <li><strong>Rongali Mounika</strong><br>(5221411204)</li>
+      <li><strong>Kanda Veera Babu</strong><br>(5221411189)</li>
+      <li><strong>Tatineni Rama Sai Siddartha Naidu</strong><br>(5221411209)</li>
+      <li><strong>Korada Vivek Venkat Sai</strong><br>(5221411191)</li>
+    </ul>
+  </div>
 
   <div class="w-full max-w-md">
 
@@ -26,7 +42,7 @@
         <i data-lucide="printer" class="w-6 h-6 text-white"></i>
       </div>
       <span class="text-xl font-bold text-center leading-tight">
-        Secure Mobile-Based Printing System
+        A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication
       </span>
     </div>
 
@@ -43,18 +59,31 @@
         <!-- Email -->
         <div>
           <label class="block text-sm font-medium mb-1">Email</label>
-          <input id="email" type="email" required
-            class="w-full h-11 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          <input
+            id="email"
+            type="email"
+            placeholder="Enter your email"
+            required
+            class="w-full h-11 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
         <!-- Password -->
         <div>
           <label class="block text-sm font-medium mb-1">Password</label>
           <div class="relative">
-            <input id="password" type="password" required
-              class="w-full h-11 px-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            <button type="button" onclick="togglePassword()"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              required
+              class="w-full h-11 px-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="button"
+              onclick="togglePassword()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+            >
               <i id="eyeIcon" data-lucide="eye" class="w-4 h-4"></i>
             </button>
           </div>
@@ -63,17 +92,20 @@
         <!-- Options -->
         <div class="flex items-center justify-between text-sm">
           <label class="flex items-center gap-2">
-            <input type="checkbox" class="rounded"/>
+            <input type="checkbox" class="rounded" />
             Remember me
           </label>
+
           <a href="#" id="forgotPassword" class="text-blue-600 hover:underline">
             Forgot password?
           </a>
         </div>
 
-        <!-- Sign In Button -->
-        <button type="submit"
-          class="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition">
+        <!-- Button -->
+        <button
+          type="submit"
+          class="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition"
+        >
           Sign In
         </button>
       </form>
@@ -85,16 +117,29 @@
         <div class="h-px bg-gray-200 flex-1"></div>
       </div>
 
-      <!-- Google Sign-In -->
-      <button id="googleSignInBtn"
-        class="w-full h-11 border border-gray-300 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-100">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"/>
-        Sign in with Google
-      </button>
+      <!-- Google Sign In -->
+      <div id="g_id_onload"
+           data-client_id="301344499556-xxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
+           data-callback="handleGoogleLogin"
+           data-auto_prompt="false">
+      </div>
 
+      <div class="flex justify-center">
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="continue_with"
+             data-shape="rectangular">
+        </div>
+      </div>
+
+      <!-- Footer -->
       <p class="text-center text-sm text-gray-500 mt-6">
         Don't have an account?
-        <a href="signup.html" class="text-blue-600 font-medium hover:underline">Sign up</a>
+        <a href="signup.html" class="text-blue-600 font-medium hover:underline">
+          Sign up
+        </a>
       </p>
     </div>
 
@@ -103,97 +148,84 @@
     </p>
   </div>
 
-<script>
-lucide.createIcons();
+  <!-- 🔥 SCRIPT -->
+  <script>
+    lucide.createIcons();
 
-/* 🔥 Firebase config */
-const firebaseConfig = {
-  apiKey: "AIzaSyAGb989_gWkh0G63PGtY6GkKskbSL6lVvs",
-  authDomain: "smart-printer-app-79846.firebaseapp.com",
-  projectId: "smart-printer-app-79846",
-  storageBucket: "smart-printer-app-79846.firebasestorage.app",
-  messagingSenderId: "301344499556",
-  appId: "1:301344499556:web:7908c13b4757b38d21bc71"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGb989_gWkh0G63PGtY6GkKskbSL6lVvs",
+      authDomain: "smart-printer-app-79846.firebaseapp.com",
+      projectId: "smart-printer-app-79846",
+      storageBucket: "smart-printer-app-79846.firebasestorage.app",
+      messagingSenderId: "301344499556",
+      appId: "1:301344499556:web:7908c13b4757b38d21bc71",
+      measurementId: "G-DFL7775P8J"
+    };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-/* ✅ Keep user logged in */
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    function togglePassword() {
+      const input = document.getElementById("password");
+      const icon = document.getElementById("eyeIcon");
 
-/* allowed Google emails */
-const allowedEmails = [
-  "user1@example.com",
-  "user2@example.com",
-  "user3@example.com"
-];
+      if (input.type === "password") {
+        input.type = "text";
+        icon.setAttribute("data-lucide", "eye-off");
+      } else {
+        input.type = "password";
+        icon.setAttribute("data-lucide", "eye");
+      }
 
-/* toggle password */
-function togglePassword() {
-  const input = document.getElementById("password");
-  const icon = document.getElementById("eyeIcon");
-  if (input.type === "password") {
-    input.type = "text";
-    icon.setAttribute("data-lucide", "eye-off");
-  } else {
-    input.type = "password";
-    icon.setAttribute("data-lucide", "eye");
-  }
-  lucide.createIcons();
-}
-
-/* email login */
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = email.value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-    window.location.href = "dashboard.html";
-  } catch (error) {
-    alert("❌ " + error.message);
-  }
-});
-
-/* forgot password */
-document.getElementById("forgotPassword").addEventListener("click", async (e) => {
-  e.preventDefault();
-  const emailVal = document.getElementById("email").value.trim();
-  if (!emailVal) return alert("Enter your email first");
-
-  try {
-    await auth.sendPasswordResetEmail(emailVal);
-    alert("📩 Reset link sent");
-  } catch (err) {
-    alert("❌ " + err.message);
-  }
-});
-
-/* Google login */
-document.getElementById("googleSignInBtn").addEventListener("click", async () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-
-  try {
-    const result = await auth.signInWithPopup(provider);
-    const email = result.user.email;
-
-    if (!allowedEmails.includes(email)) {
-      await auth.signOut();
-      return alert("❌ This Google account is not allowed.");
+      lucide.createIcons();
     }
 
-    window.location.href = "dashboard.html";
-  } catch (err) {
-    alert("❌ Google Sign-In failed: " + err.message);
-  }
-});
-</script>
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        alert("✅ Login successful!");
+        localStorage.setItem("userLoggedIn", "true");
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        alert("❌ " + error.message);
+      }
+    });
+
+    document.getElementById("forgotPassword").addEventListener("click", async function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+
+      if (!email) {
+        alert("⚠️ Please enter your email first.");
+        return;
+      }
+
+      try {
+        await auth.sendPasswordResetEmail(email);
+        alert("📩 Password reset link sent! Check your email.");
+      } catch (error) {
+        console.error(error);
+        if (error.code === "auth/user-not-found") {
+          alert("❌ No account found with this email.");
+        } else {
+          alert("❌ Error sending reset link: " + error.message);
+        }
+      }
+    });
+
+    function handleGoogleLogin(response) {
+      console.log("Google response:", response);
+      alert("✅ Google Sign-In successful!");
+      localStorage.setItem("userLoggedIn", "true");
+      window.location.href = "dashboard.html";
+    }
+  </script>
 
 </body>
 </html>
-
-
-
-
