@@ -11,13 +11,11 @@
   <!-- Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Google Identity -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head>
+
 <body class="min-h-screen bg-gradient-to-br from-white via-white to-blue-50 flex items-center justify-center p-4">
 
   <div class="w-full max-w-md">
@@ -28,8 +26,7 @@
         <i data-lucide="printer" class="w-6 h-6 text-white"></i>
       </div>
       <span class="text-xl font-bold text-center leading-tight">
-        A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication
-
+        Secure Mobile-Based Printing System
       </span>
     </div>
 
@@ -46,7 +43,7 @@
         <!-- Email -->
         <div>
           <label class="block text-sm font-medium mb-1">Email</label>
-          <input id="email" type="email" placeholder="Enter your email" required
+          <input id="email" type="email" required
             class="w-full h-11 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
 
@@ -54,7 +51,7 @@
         <div>
           <label class="block text-sm font-medium mb-1">Password</label>
           <div class="relative">
-            <input id="password" type="password" placeholder="Enter your password" required
+            <input id="password" type="password" required
               class="w-full h-11 px-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
             <button type="button" onclick="togglePassword()"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
@@ -95,7 +92,6 @@
         Sign in with Google
       </button>
 
-      <!-- Footer -->
       <p class="text-center text-sm text-gray-500 mt-6">
         Don't have an account?
         <a href="signup.html" class="text-blue-600 font-medium hover:underline">Sign up</a>
@@ -107,100 +103,97 @@
     </p>
   </div>
 
-  <!-- SCRIPT -->
-  <script>
-    lucide.createIcons();
+<script>
+lucide.createIcons();
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAGb989_gWkh0G63PGtY6GkKskbSL6lVvs",
-      authDomain: "smart-printer-app-79846.firebaseapp.com",
-      projectId: "smart-printer-app-79846",
-      storageBucket: "smart-printer-app-79846.firebasestorage.app",
-      messagingSenderId: "301344499556",
-      appId: "1:301344499556:web:7908c13b4757b38d21bc71",
-      measurementId: "G-DFL7775P8J"
-    };
+/* 🔥 Firebase config */
+const firebaseConfig = {
+  apiKey: "AIzaSyAGb989_gWkh0G63PGtY6GkKskbSL6lVvs",
+  authDomain: "smart-printer-app-79846.firebaseapp.com",
+  projectId: "smart-printer-app-79846",
+  storageBucket: "smart-printer-app-79846.firebasestorage.app",
+  messagingSenderId: "301344499556",
+  appId: "1:301344499556:web:7908c13b4757b38d21bc71"
+};
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-    // Allowed Google emails
-    const allowedEmails = [
-      "user1@example.com",
-      "user2@example.com",
-      "user3@example.com"
-    ];
+/* ✅ Keep user logged in */
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-    // Toggle password visibility
-    function togglePassword() {
-      const input = document.getElementById("password");
-      const icon = document.getElementById("eyeIcon");
-      if (input.type === "password") {
-        input.type = "text";
-        icon.setAttribute("data-lucide", "eye-off");
-      } else {
-        input.type = "password";
-        icon.setAttribute("data-lucide", "eye");
-      }
-      lucide.createIcons();
+/* allowed Google emails */
+const allowedEmails = [
+  "user1@example.com",
+  "user2@example.com",
+  "user3@example.com"
+];
+
+/* toggle password */
+function togglePassword() {
+  const input = document.getElementById("password");
+  const icon = document.getElementById("eyeIcon");
+  if (input.type === "password") {
+    input.type = "text";
+    icon.setAttribute("data-lucide", "eye-off");
+  } else {
+    input.type = "password";
+    icon.setAttribute("data-lucide", "eye");
+  }
+  lucide.createIcons();
+}
+
+/* email login */
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = email.value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    window.location.href = "dashboard.html";
+  } catch (error) {
+    alert("❌ " + error.message);
+  }
+});
+
+/* forgot password */
+document.getElementById("forgotPassword").addEventListener("click", async (e) => {
+  e.preventDefault();
+  const emailVal = document.getElementById("email").value.trim();
+  if (!emailVal) return alert("Enter your email first");
+
+  try {
+    await auth.sendPasswordResetEmail(emailVal);
+    alert("📩 Reset link sent");
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+});
+
+/* Google login */
+document.getElementById("googleSignInBtn").addEventListener("click", async () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  try {
+    const result = await auth.signInWithPopup(provider);
+    const email = result.user.email;
+
+    if (!allowedEmails.includes(email)) {
+      await auth.signOut();
+      return alert("❌ This Google account is not allowed.");
     }
 
-    // Email/Password login
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    alert("❌ Google Sign-In failed: " + err.message);
+  }
+});
+</script>
 
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        alert("✅ Login successful!");
-        localStorage.setItem("userLoggedIn", "true");
-        window.location.href = "dashboard.html";
-      } catch (error) {
-        alert("❌ " + error.message);
-      }
-    });
-
-    // Forgot password
-    document.getElementById("forgotPassword").addEventListener("click", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      if (!email) { alert("⚠️ Please enter your email first."); return; }
-
-      try {
-        await auth.sendPasswordResetEmail(email);
-        alert("📩 Password reset link sent! Check your email.");
-      } catch (error) {
-        console.error(error);
-        alert("❌ " + (error.message || "Error sending reset link."));
-      }
-    });
-
-    // Google Sign-In with whitelist
-    document.getElementById("googleSignInBtn").addEventListener("click", async () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      try {
-        const result = await auth.signInWithPopup(provider);
-        const email = result.user.email;
-
-        if (!allowedEmails.includes(email)) {
-          alert("❌ This Google account is not allowed.");
-          await auth.signOut();
-          return;
-        }
-
-        alert("✅ Google Sign-In successful!");
-        localStorage.setItem("userLoggedIn", "true");
-        window.location.href = "dashboard.html";
-      } catch (error) {
-        console.error(error);
-        alert("❌ Google Sign-In failed: " + error.message);
-      }
-    });
-  </script>
 </body>
 </html>
+
 
 
 
