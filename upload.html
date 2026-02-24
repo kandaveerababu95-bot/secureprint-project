@@ -11,6 +11,9 @@
   <!-- Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Google Identity -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -25,7 +28,7 @@
         <i data-lucide="printer" class="w-6 h-6 text-white"></i>
       </div>
       <span class="text-xl font-bold text-center leading-tight">
-        A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication
+        Secure Mobile-Based Printing System
       </span>
     </div>
 
@@ -77,6 +80,20 @@
         </button>
       </form>
 
+      <!-- Divider -->
+      <div class="my-6 flex items-center gap-3">
+        <div class="h-px bg-gray-200 flex-1"></div>
+        <span class="text-xs text-gray-400">OR CONTINUE WITH</span>
+        <div class="h-px bg-gray-200 flex-1"></div>
+      </div>
+
+      <!-- Google Sign-In -->
+      <button id="googleSignInBtn"
+        class="w-full h-11 border border-gray-300 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-100">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"/>
+        Sign in with Google
+      </button>
+
       <!-- Footer -->
       <p class="text-center text-sm text-gray-500 mt-6">
         Don't have an account?
@@ -106,6 +123,13 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+
+    // Allowed Google emails
+    const allowedEmails = [
+      "user1@example.com",
+      "user2@example.com",
+      "user3@example.com"
+    ];
 
     // Toggle password visibility
     function togglePassword() {
@@ -149,6 +173,28 @@
       } catch (error) {
         console.error(error);
         alert("❌ " + (error.message || "Error sending reset link."));
+      }
+    });
+
+    // Google Sign-In with whitelist
+    document.getElementById("googleSignInBtn").addEventListener("click", async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const email = result.user.email;
+
+        if (!allowedEmails.includes(email)) {
+          alert("❌ This Google account is not allowed.");
+          await auth.signOut();
+          return;
+        }
+
+        alert("✅ Google Sign-In successful!");
+        localStorage.setItem("userLoggedIn", "true");
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        console.error(error);
+        alert("❌ Google Sign-In failed: " + error.message);
       }
     });
   </script>
