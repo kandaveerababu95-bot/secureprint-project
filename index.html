@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>
     A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication
   </title>
@@ -16,15 +17,33 @@
   <!-- Google Identity -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-  <!-- 🔥 Firebase SDK (Compat version for simpler integration) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-white via-white to-blue-50 flex items-center justify-center p-4">
 
+  <!-- ✅ TOP HEADER (LOGO LEFT + TITLE SINGLE LINE) -->
+  <div class="absolute top-4 left-4 right-4 max-w-6xl mx-auto">
+    <div class="flex items-center gap-3">
+
+      <!-- 🔥 IMPORTANT: make sure filename matches exactly -->
+      <img
+        src="gvpcdpgc.jpg"
+        alt="College Logo"
+        class="w-14 h-14 object-contain"
+      />
+
+      <h1 class="text-xs md:text-sm font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">
+        A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication
+      </h1>
+
+    </div>
+  </div>
+
   <!-- TEAM INFO -->
-  <div class="fixed bottom-4 right-4 bg-white/90 backdrop-blur-md shadow-lg rounded-xl p-4 text-xs w-64 border">
+  <div class="fixed bottom-4 left-8 bg-white/90 backdrop-blur-md shadow-lg rounded-xl p-4 text-xs w-64 border">
     <h3 class="font-bold text-sm mb-2 text-blue-700">Batch - C7</h3>
     <ul class="space-y-1 text-gray-700">
       <li><strong>Rongali Mounika</strong><br>(5221411204)</li>
@@ -35,19 +54,8 @@
   </div>
 
   <div class="w-full max-w-md">
-    
 
-    <!-- Logo -->
-    <div class="flex items-center justify-center gap-2 mb-8">
-      <div class="p-2 bg-blue-600 rounded-xl shadow-md">
-        <i data-lucide="printer" class="w-6 h-6 text-white"></i>
-      </div>
-      <span class="text-xl font-bold text-center leading-tight">
-        A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication
-      </span>
-    </div>
-
-    <!-- Card -->
+    <!-- LOGIN CARD -->
     <div class="bg-white rounded-2xl shadow-xl p-8">
 
       <h2 class="text-2xl font-bold text-center mb-1">Sign In</h2>
@@ -119,19 +127,21 @@
       </div>
 
       <!-- Google Sign In -->
-      <div id="g_id_onload"
-           data-client_id="301344499556-xxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
-           data-callback="handleGoogleLogin"
-           data-auto_prompt="false">
+      <div
+        id="g_id_onload"
+        data-client_id="301344499556-xxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
+        data-callback="handleGoogleLogin"
+        data-auto_prompt="false">
       </div>
 
       <div class="flex justify-center">
-        <div class="g_id_signin"
-             data-type="standard"
-             data-size="large"
-             data-theme="outline"
-             data-text="continue_with"
-             data-shape="rectangular">
+        <div
+          class="g_id_signin"
+          data-type="standard"
+          data-size="large"
+          data-theme="outline"
+          data-text="continue_with"
+          data-shape="rectangular">
         </div>
       </div>
 
@@ -211,7 +221,6 @@
         await auth.sendPasswordResetEmail(email);
         alert("📩 Password reset link sent! Check your email.");
       } catch (error) {
-        console.error(error);
         if (error.code === "auth/user-not-found") {
           alert("❌ No account found with this email.");
         } else {
@@ -230,5 +239,3 @@
 
 </body>
 </html>
-
-
