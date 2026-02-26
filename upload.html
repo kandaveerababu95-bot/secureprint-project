@@ -1,205 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SecurePrint Login</title>
+<meta charset="UTF-8">
+<title>Upload Documents</title>
 
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Google Identity -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+.paper {
+  width: 80%;
+  height: 100px;
+  background: white;
+  position: absolute;
+  top: -120px;
+  left: 10%;
+  transition: 2s;
+}
+</style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-white via-white to-blue-50 flex items-center justify-center p-4">
 
-  <div class="w-full max-w-md">
+<body class="bg-gray-100 min-h-screen p-6">
 
-    <!-- Logo -->
-    <div class="flex items-center justify-center gap-2 mb-8">
-      <div class="p-2 bg-blue-600 rounded-xl shadow-md">
-        <i data-lucide="printer" class="w-6 h-6 text-white"></i>
-      </div>
-      <span class="text-xl font-bold text-center leading-tight">
-        A Secure Mobile-Based Printing System with Multi-Printer Management, Dynamic Slot Booking, and Traffic-Aware Passcode Authentication
-
-      </span>
+<!-- Header -->
+<div class="max-w-6xl mx-auto mb-6">
+  <div class="flex items-center gap-3">
+    <div class="p-3 bg-blue-600 rounded-xl">
+      <i data-lucide="printer" class="text-white w-6 h-6"></i>
     </div>
+    <div>
+      <h1 class="text-2xl font-bold">Upload Documents</h1>
+      <p class="text-gray-500">Upload text files and images for printing</p>
+    </div>
+  </div>
+</div>
 
-    <!-- Card -->
-    <div class="bg-white rounded-2xl shadow-xl p-8">
+<div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
 
-      <h2 class="text-2xl font-bold text-center mb-1">Sign In</h2>
-      <p class="text-sm text-gray-500 text-center mb-6">
-        Enter your credentials to access your account
+  <!-- LEFT PANEL -->
+  <div class="md:col-span-2 bg-white rounded-2xl shadow p-6">
+
+    <h3 class="font-semibold mb-4">Select Files</h3>
+
+    <!-- Drop Zone -->
+    <div id="dropZone"
+      class="border-2 border-dashed rounded-xl p-10 text-center cursor-pointer hover:bg-gray-50">
+
+      <i data-lucide="upload" class="mx-auto w-10 h-10 text-gray-400 mb-3"></i>
+
+      <p class="font-medium">Drop files here or click to browse</p>
+      <p class="text-sm text-gray-400 mt-1">
+        Supported formats: TEXT and Images only
       </p>
 
-      <form id="loginForm" class="space-y-5">
+      <button class="mt-4 px-4 py-2 border rounded-lg">Browse Files</button>
 
-        <!-- Email -->
-        <div>
-          <label class="block text-sm font-medium mb-1">Email</label>
-          <input id="email" type="email" placeholder="Enter your email" required
-            class="w-full h-11 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-        </div>
+      <input type="file" id="fileInput" class="hidden"
+        accept=".txt,.pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp"
+        multiple>
 
-        <!-- Password -->
-        <div>
-          <label class="block text-sm font-medium mb-1">Password</label>
-          <div class="relative">
-            <input id="password" type="password" placeholder="Enter your password" required
-              class="w-full h-11 px-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-            <button type="button" onclick="togglePassword()"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-              <i id="eyeIcon" data-lucide="eye" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
+      <p class="text-xs text-gray-400 mt-3">Maximum file size: 50MB per file</p>
+    </div>
 
-        <!-- Options -->
-        <div class="flex items-center justify-between text-sm">
-          <label class="flex items-center gap-2">
-            <input type="checkbox" class="rounded"/>
-            Remember me
-          </label>
-          <a href="#" id="forgotPassword" class="text-blue-600 hover:underline">
-            Forgot password?
-          </a>
-        </div>
+    <!-- ✅ TWO ACTION BUTTONS -->
+    <div class="mt-6 grid md:grid-cols-2 gap-4">
 
-        <!-- Sign In Button -->
-        <button type="submit"
-          class="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition">
-          Sign In
-        </button>
-      </form>
-
-      <!-- Divider -->
-      <div class="my-6 flex items-center gap-3">
-        <div class="h-px bg-gray-200 flex-1"></div>
-        <span class="text-xs text-gray-400">OR CONTINUE WITH</span>
-        <div class="h-px bg-gray-200 flex-1"></div>
-      </div>
-
-      <!-- Google Sign-In -->
-      <button id="googleSignInBtn"
-        class="w-full h-11 border border-gray-300 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-100">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5"/>
-        Sign in with Google
+      <button id="bookSlotBtn"
+        class="w-full bg-blue-300 text-white py-2 rounded-xl cursor-not-allowed"
+        disabled>
+        Proceed to Book a Slot
       </button>
 
-      <!-- Footer -->
-      <p class="text-center text-sm text-gray-500 mt-6">
-        Don't have an account?
-        <a href="signup.html" class="text-blue-600 font-medium hover:underline">Sign up</a>
-      </p>
+      <button id="viewFilesBtn"
+        class="w-full bg-gray-300 text-white py-2 rounded-xl cursor-not-allowed"
+        disabled>
+        Add Files
+      </button>
+
     </div>
 
-    <p class="text-center text-xs text-gray-400 mt-6">
-      © 2026 SecurePrint. All rights reserved.
-    </p>
   </div>
 
-  <!-- SCRIPT -->
-  <script>
-    lucide.createIcons();
+  <!-- RIGHT SUMMARY -->
+  <div class="bg-white rounded-2xl shadow p-6 h-fit">
+    <h3 class="font-semibold mb-4">Summary</h3>
 
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAGb989_gWkh0G63PGtY6GkKskbSL6lVvs",
-      authDomain: "smart-printer-app-79846.firebaseapp.com",
-      projectId: "smart-printer-app-79846",
-      storageBucket: "smart-printer-app-79846.firebasestorage.app",
-      messagingSenderId: "301344499556",
-      appId: "1:301344499556:web:7908c13b4757b38d21bc71",
-      measurementId: "G-DFL7775P8J"
-    };
+    <p class="text-sm text-gray-500">Files Selected</p>
+    <p id="fileCount" class="text-2xl font-bold text-blue-600">0</p>
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    <p class="text-sm text-gray-500 mt-4">Total Size</p>
+    <p id="totalSize" class="font-semibold">0.00 MB</p>
+  </div>
+</div>
 
-    // Allowed Google emails
-    const allowedEmails = [
-      "user1@example.com",
-      "user2@example.com",
-      "user3@example.com"
-    ];
+<script>
+lucide.createIcons();
 
-    // Toggle password visibility
-    function togglePassword() {
-      const input = document.getElementById("password");
-      const icon = document.getElementById("eyeIcon");
-      if (input.type === "password") {
-        input.type = "text";
-        icon.setAttribute("data-lucide", "eye-off");
-      } else {
-        input.type = "password";
-        icon.setAttribute("data-lucide", "eye");
-      }
-      lucide.createIcons();
+/* ================= FILE HANDLING ================= */
+
+const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
+const fileCount = document.getElementById("fileCount");
+const totalSize = document.getElementById("totalSize");
+const bookSlotBtn = document.getElementById("bookSlotBtn");
+const viewFilesBtn = document.getElementById("viewFilesBtn");
+
+dropZone.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", handleFiles);
+
+dropZone.addEventListener("dragover", e => {
+  e.preventDefault();
+  dropZone.classList.add("bg-gray-50");
+});
+
+dropZone.addEventListener("dragleave", () => {
+  dropZone.classList.remove("bg-gray-50");
+});
+
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("bg-gray-50");
+  fileInput.files = e.dataTransfer.files;
+  handleFiles();
+});
+
+/* ✅ STRICT VALIDATION */
+function handleFiles() {
+  const files = fileInput.files;
+  if (!files.length) return;
+
+  let total = 0;
+
+  const allowed = [
+    "txt","pdf","doc","docx","ppt","pptx",
+    "jpg","jpeg","png","gif","webp"
+  ];
+
+  for (let f of files) {
+    const ext = f.name.split(".").pop().toLowerCase();
+
+    if (!allowed.includes(ext)) {
+      alert("❌ Only TEXT and IMAGE files are allowed.");
+      resetUI();
+      return;
     }
 
-    // Email/Password login
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+    total += f.size;
+  }
 
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        alert("✅ Login successful!");
-        localStorage.setItem("userLoggedIn", "true");
-        window.location.href = "dashboard.html";
-      } catch (error) {
-        alert("❌ " + error.message);
-      }
+  fileCount.innerText = files.length;
+  totalSize.innerText = (total / (1024*1024)).toFixed(2) + " MB";
+
+  // ✅ enable buttons
+  enableButtons();
+}
+
+function enableButtons() {
+  bookSlotBtn.disabled = false;
+  viewFilesBtn.disabled = false;
+
+  bookSlotBtn.classList.remove("bg-blue-300","cursor-not-allowed");
+  bookSlotBtn.classList.add("bg-blue-600");
+
+  viewFilesBtn.classList.remove("bg-gray-300","cursor-not-allowed");
+  viewFilesBtn.classList.add("bg-gray-700");
+}
+
+/* ✅ Reset if invalid */
+function resetUI(){
+  fileInput.value = "";
+  fileCount.innerText = "0";
+  totalSize.innerText = "0.00 MB";
+
+  bookSlotBtn.disabled = true;
+  viewFilesBtn.disabled = true;
+}
+
+/* 🔥 SAVE JOBS FOR DASHBOARD */
+function savePrintJobs(files) {
+  let jobs = JSON.parse(localStorage.getItem("printJobs") || "[]");
+
+  Array.from(files).forEach((f, index) => {
+    jobs.push({
+      id: Date.now() + index,
+      fileName: f.name,
+      status: "pending",
+      createdAt: new Date().toISOString()
     });
+  });
 
-    // Forgot password
-    document.getElementById("forgotPassword").addEventListener("click", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      if (!email) { alert("⚠️ Please enter your email first."); return; }
+  localStorage.setItem("printJobs", JSON.stringify(jobs));
+}
 
-      try {
-        await auth.sendPasswordResetEmail(email);
-        alert("📩 Password reset link sent! Check your email.");
-      } catch (error) {
-        console.error(error);
-        alert("❌ " + (error.message || "Error sending reset link."));
-      }
-    });
+/* ================= BUTTON ACTIONS ================= */
 
-    // Google Sign-In with whitelist
-    document.getElementById("googleSignInBtn").addEventListener("click", async () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      try {
-        const result = await auth.signInWithPopup(provider);
-        const email = result.user.email;
+// ✅ Proceed → generate passcode
+bookSlotBtn.addEventListener("click", () => {
+  if (!fileInput.files.length) return;
 
-        if (!allowedEmails.includes(email)) {
-          alert("❌ This Google account is not allowed.");
-          await auth.signOut();
-          return;
-        }
+  savePrintJobs(fileInput.files);
+  localStorage.setItem("uploadedFiles", JSON.stringify(
+    Array.from(fileInput.files).map(f => ({ name: f.name, size: f.size }))
+  ));
 
-        alert("✅ Google Sign-In successful!");
-        localStorage.setItem("userLoggedIn", "true");
-        window.location.href = "dashboard.html";
-      } catch (error) {
-        console.error(error);
-        alert("❌ Google Sign-In failed: " + error.message);
-      }
-    });
-  </script>
+  window.location.href = "generatepasscode.html";
+});
+
+// ✅ View files → review page
+viewFilesBtn.addEventListener("click", () => {
+  if (!fileInput.files.length) return;
+
+  localStorage.setItem("uploadedFiles", JSON.stringify(
+    Array.from(fileInput.files).map(f => ({ name: f.name, size: f.size }))
+  ));
+
+  window.location.href = "reviewfiles.html";
+});
+</script>
+
 </body>
 </html>
-
-
