@@ -60,27 +60,36 @@
     <option value="Lab">Printer 3 - Lab</option>
   </select>
 
-  <button onclick="generatePasscode()"
+  <button onclick="sendPasscodeSMS()"
     class="w-full bg-blue-600 text-white py-2 rounded-xl">
     Generate Passcode →
   </button>
+
+  <div id="recaptcha-container"></div>
 </div>
 
 <!-- ================= STEP 3 ================= -->
 <div id="step3" class="hiddenStep">
-  <h2 class="font-semibold mb-3">Step 3: Your Passcode</h2>
+  <h2 class="font-semibold mb-3">Step 3: Enter OTP</h2>
+
+  <input id="otpInput" placeholder="Enter OTP from SMS"
+    class="border rounded-lg p-2 w-full mb-4">
+
+  <button onclick="verifyOTP()"
+    class="w-full bg-green-600 text-white py-2 rounded-xl mb-2">
+    Verify OTP →
+  </button>
 
   <div id="passcodeBox"
-    class="text-center text-3xl font-bold text-green-600 mb-4"></div>
+    class="text-center text-3xl font-bold text-green-600 mt-4"></div>
 
   <button onclick="goToStep(4)"
-    class="w-full bg-blue-600 text-white py-2 rounded-xl mb-2">
+    class="w-full bg-blue-600 text-white py-2 rounded-xl mt-4">
     Go to Printer →
   </button>
 
-  <!-- ⭐ NEW BUTTON (IMPORTANT) -->
   <button onclick="resetToStep1()"
-    class="w-full bg-gray-300 py-2 rounded-xl">
+    class="w-full bg-gray-300 py-2 rounded-xl mt-2">
     Book Another Slot
   </button>
 </div>
@@ -121,17 +130,13 @@
   <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">
 
     <h3 class="text-lg font-bold mb-2">⚠ Slot Busy</h3>
-
     <p id="slotMessage" class="text-gray-600 mb-6"></p>
 
     <div class="flex gap-3">
-      <button onclick="cancelSlot()"
-        class="flex-1 bg-gray-300 py-2 rounded-xl">
+      <button onclick="cancelSlot()" class="flex-1 bg-gray-300 py-2 rounded-xl">
         Cancel
       </button>
-
-      <button onclick="continueSlot()"
-        class="flex-1 bg-blue-600 text-white py-2 rounded-xl">
+      <button onclick="continueSlot()" class="flex-1 bg-blue-600 text-white py-2 rounded-xl">
         Continue
       </button>
     </div>
@@ -139,8 +144,33 @@
   </div>
 </div>
 
-<script>
+<script type="module">
 lucide.createIcons();
+
+/* ================= FIREBASE ================= */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 /* ================= DATA ================= */
 
@@ -151,7 +181,7 @@ let pendingStep = null;
 
 /* ================= STEP NAV ================= */
 
-function goToStep(step){
+window.goToStep = function(step){
 
   if(step === 2){
     const name = username.value.trim();
@@ -186,58 +216,94 @@ function goToStep(step){
 
   document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
   document.getElementById("step"+step).classList.remove("hiddenStep");
-}
+};
 
-/* ================= RESET WITHOUT REFRESH ================= */
+/* ================= SMS SEND ================= */
 
-function resetToStep1(){
+window.sendPasscodeSMS = async function(){
+
+  const user = auth.currentUser;
+  if(!user) return alert("Please login first");
+
+  const userDoc = await getDoc(doc(db,"users",user.uid));
+  const phoneNumber = userDoc.data().phone;
+
+  const formattedPhone =
+    phoneNumber.startsWith("+91") ? phoneNumber : "+91"+phoneNumber;
+
+  window.recaptchaVerifier = new RecaptchaVerifier(
+    auth,
+    "recaptcha-container",
+    { size:"invisible" }
+  );
+
+  try{
+    const confirmationResult = await signInWithPhoneNumber(
+      auth,
+      formattedPhone,
+      window.recaptchaVerifier
+    );
+
+    window.confirmationResult = confirmationResult;
+    alert("✅ OTP sent to your phone");
+    goToStep(3);
+
+  }catch(err){
+    console.error(err);
+    alert("❌ SMS failed");
+  }
+};
+
+/* ================= VERIFY OTP ================= */
+
+window.verifyOTP = async function(){
+
+  const code = otpInput.value.trim();
+
+  try{
+    await window.confirmationResult.confirm(code);
+
+    const passcode = Math.floor(100000 + Math.random()*900000);
+
+    bookings.push({
+      name: username.value.trim(),
+      printer: printerSelect.value,
+      time: bookingTime.value,
+      passcode,
+      entered:false,
+      cancelled:false
+    });
+
+    passcodeBox.innerText = passcode;
+
+  }catch{
+    alert("❌ Invalid OTP");
+  }
+};
+
+/* ================= REST (UNCHANGED) ================= */
+
+window.resetToStep1 = function(){
   username.value = "";
   bookingTime.value = "";
   enteredPasscode.value = "";
   goToStep(1);
-}
+};
 
-/* ================= MODAL ================= */
-
-function continueSlot(){
+window.continueSlot = function(){
   slotModal.classList.add("hidden");
   slotModal.classList.remove("flex");
 
   document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
   document.getElementById("step"+pendingStep).classList.remove("hiddenStep");
-}
+};
 
-function cancelSlot(){
+window.cancelSlot = function(){
   slotModal.classList.add("hidden");
   slotModal.classList.remove("flex");
-}
+};
 
-/* ================= PASSCODE ================= */
-
-function generatePasscode(){
-
-  const name = username.value.trim();
-  const printer = printerSelect.value;
-  const time = bookingTime.value;
-
-  const passcode = Math.floor(100000 + Math.random()*900000);
-
-  bookings.push({
-    name,
-    printer,
-    time,
-    passcode,
-    entered:false,
-    cancelled:false
-  });
-
-  passcodeBox.innerText = passcode;
-  goToStep(3);
-}
-
-/* ================= PRINTER ================= */
-
-function enterPasscode(){
+window.enterPasscode = function(){
 
   const entered = enteredPasscode.value.trim();
 
@@ -256,8 +322,7 @@ function enterPasscode(){
 
   if(now < start){
     statusScreen.innerText =
-      "⏳ Too early! Print at: " +
-      start.toLocaleTimeString();
+      "⏳ Too early! Print at: " + start.toLocaleTimeString();
     return;
   }
 
@@ -272,9 +337,7 @@ function enterPasscode(){
   printQueue.push(booking);
   updateQueueDisplay();
   processQueue();
-}
-
-/* ================= QUEUE ================= */
+};
 
 function updateQueueDisplay(){
   const total = printQueue.length + (currentPrinting?1:0);
@@ -303,7 +366,3 @@ function processQueue(){
 
 </body>
 </html>
-
-
-
-
