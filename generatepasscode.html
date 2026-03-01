@@ -9,23 +9,25 @@
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
-.hiddenStep { display:none; }
+.hiddenStep{display:none;}
 
-.paper {
-  width: 80%;
-  height: 100px;
-  background: white;
-  position: absolute;
-  top: -120px;
-  left: 10%;
-  transition: 2s;
+.paper{
+  width:80%;
+  height:100px;
+  background:white;
+  position:absolute;
+  top:-120px;
+  left:10%;
+  transition:2s;
 }
+
+.printer-card{transition:.2s;}
 </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
 
-<div class="w-full max-w-3xl bg-white rounded-2xl shadow p-6">
+<div class="w-full max-w-4xl bg-white rounded-2xl shadow p-6">
 
 <!-- HEADER -->
 <div class="flex items-center gap-3 mb-6">
@@ -72,14 +74,15 @@
 
 <!-- ================= STEP 3 ================= -->
 <div id="step3" class="hiddenStep">
-  <h2 class="font-semibold mb-3">Step 3: Your Passcode</h2>
+  <h2 class="font-semibold mb-3">Step 3: Passcode Sent</h2>
 
-  <div id="passcodeBox"
-    class="text-center text-3xl font-bold text-green-600 mb-4"></div>
+  <div class="text-center text-green-600 font-bold mb-4">
+    ✅ Passcode sent to your email
+  </div>
 
   <button onclick="goToStep(4)"
     class="w-full bg-blue-600 text-white py-2 rounded-xl mb-2">
-    Go to Printer →
+    Go to Print →
   </button>
 
   <button onclick="resetToStep1()"
@@ -93,21 +96,49 @@
 
   <div class="bg-gradient-to-b from-gray-700 to-gray-900 text-white rounded-2xl p-6 shadow-xl">
 
-    <div class="font-bold mb-3">SMART IoT PRINTER</div>
+    <div class="font-bold mb-4 text-lg">SMART IoT PRINTER DASHBOARD</div>
 
     <div id="statusScreen"
-      class="bg-black text-lime-400 font-mono p-3 rounded mb-3">
+      class="bg-black text-lime-400 font-mono p-3 rounded mb-4">
       STATUS: IDLE
     </div>
 
-    <div class="mb-3">
-      <strong>Queue:</strong> <span id="queueCount">0</span>
+    <!-- ✅ SELECTED INFO -->
+    <div class="bg-black rounded p-3 mb-4 text-sm">
+      <div><b>Printer:</b> <span id="selectedPrinterText"></span></div>
+      <div><b>Slot Time:</b> <span id="selectedTimeText"></span></div>
+
+      <div class="mt-2"><b>Files to Print:</b></div>
+      <div id="printFileList" class="text-lime-400"></div>
+    </div>
+
+    <!-- PRINTER CARDS -->
+    <div class="grid grid-cols-3 gap-3 mb-4">
+
+      <div id="cardAuditorium" class="printer-card bg-gray-800 rounded-xl p-3 text-center">
+        <div class="font-bold">Auditorium</div>
+        <div class="text-2xl" id="jobAuditorium">0</div>
+        <div class="text-xs text-gray-300">jobs</div>
+      </div>
+
+      <div id="cardLibrary" class="printer-card bg-gray-800 rounded-xl p-3 text-center">
+        <div class="font-bold">Library</div>
+        <div class="text-2xl" id="jobLibrary">0</div>
+        <div class="text-xs text-gray-300">jobs</div>
+      </div>
+
+      <div id="cardLab" class="printer-card bg-gray-800 rounded-xl p-3 text-center">
+        <div class="font-bold">Lab</div>
+        <div class="text-2xl" id="jobLab">0</div>
+        <div class="text-xs text-gray-300">jobs</div>
+      </div>
+
     </div>
 
     <input id="enteredPasscode" placeholder="Enter Passcode"
       class="text-black p-2 rounded mr-2">
     <button onclick="enterPasscode()" class="bg-blue-600 px-3 py-2 rounded">
-      Submit
+      Print
     </button>
 
     <div class="relative mt-6 h-28 bg-black rounded overflow-hidden">
@@ -119,219 +150,177 @@
 
 </div>
 
-<!-- ================= MODAL ================= -->
-<div id="slotModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-  <div class="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">
-
-    <h3 class="text-lg font-bold mb-2">⚠ Slot Busy</h3>
-
-    <p id="slotMessage" class="text-gray-600 mb-6"></p>
-
-    <div class="flex gap-3">
-      <button onclick="cancelSlot()"
-        class="flex-1 bg-gray-300 py-2 rounded-xl">
-        Cancel
-      </button>
-
-      <button onclick="continueSlot()"
-        class="flex-1 bg-blue-600 text-white py-2 rounded-xl">
-        Continue
-      </button>
-    </div>
-
-  </div>
-</div>
-
 <script>
 lucide.createIcons();
+(function(){emailjs.init("WNKsaeu7XjvuUWBWc");})();
 
-/* ================= EMAILJS INIT ================= */
-(function(){
-  emailjs.init("WNKsaeu7XjvuUWBWc");
-})();
+/* ================= LOAD FILES ================= */
+
+let uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles")||"[]");
 
 /* ================= DATA ================= */
 
-let bookings = [];
-let printQueue = [];
-let currentPrinting = null;
-let pendingStep = null;
+let bookings=[];
+
+let printerQueues={
+  Auditorium:[],
+  Library:[],
+  Lab:[]
+};
+
+let currentPrinting={
+  Auditorium:null,
+  Library:null,
+  Lab:null
+};
 
 /* ================= STEP NAV ================= */
 
 function goToStep(step){
 
-  if(step === 2){
-    const name = username.value.trim();
-    const time = bookingTime.value;
-    const email = userEmail.value.trim();
-
-    if(!name) return alert("Enter your name");
-    if(!email) return alert("Enter your email");
-    if(!time) return alert("Select booking time");
-
-    const duplicate = bookings.find(
-      b => b.name.toLowerCase() === name.toLowerCase() && !b.cancelled
-    );
-    if(duplicate) return alert("This name already has an active booking");
-
-    const slotCount = bookings.filter(
-      b => b.time === time && !b.cancelled
-    ).length;
-
-    if(slotCount >= 3){
-      return alert("❌ Slot full (max 3 users). Choose another time.");
-    }
-
-    if(slotCount > 0){
-      slotMessage.innerText =
-        `${slotCount} member${slotCount>1?'s':''} already exist in the queue for this time slot.`;
-
-      pendingStep = step;
-      slotModal.classList.remove("hidden");
-      slotModal.classList.add("flex");
-      return;
-    }
+  if(step===2){
+    if(!username.value.trim()) return alert("Enter your name");
+    if(!userEmail.value.trim()) return alert("Enter your email");
+    if(!bookingTime.value) return alert("Select booking time");
+    if(!uploadedFiles.length) return alert("Upload file first");
   }
 
-  document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
-  document.getElementById("step"+step).classList.remove("hiddenStep");
+  document.querySelectorAll("[id^=step]")
+    .forEach(s=>s.classList.add("hiddenStep"));
+
+  document.getElementById("step"+step)
+    .classList.remove("hiddenStep");
+
+  if(step===4) loadPrintView();
 }
 
-/* ================= RESET ================= */
-
-function resetToStep1(){
-  username.value = "";
-  userEmail.value = "";
-  bookingTime.value = "";
-  enteredPasscode.value = "";
-  goToStep(1);
-}
-
-/* ================= MODAL ================= */
-
-function continueSlot(){
-  slotModal.classList.add("hidden");
-  slotModal.classList.remove("flex");
-
-  document.querySelectorAll("[id^=step]").forEach(s=>s.classList.add("hiddenStep"));
-  document.getElementById("step"+pendingStep).classList.remove("hiddenStep");
-}
-
-function cancelSlot(){
-  slotModal.classList.add("hidden");
-  slotModal.classList.remove("flex");
-}
-
-/* ================= EMAIL PASSCODE ================= */
+/* ================= SEND EMAIL ================= */
 
 async function sendPasscodeEmail(){
 
-  const name = username.value.trim();
-  const printer = printerSelect.value;
-  const time = bookingTime.value;
-  const email = userEmail.value.trim();
-
-  const passcode = Math.floor(100000 + Math.random()*900000);
-
-  bookings.push({
-    name,
-    printer,
-    time,
-    passcode,
-    entered:false,
-    cancelled:false
-  });
+  const name=username.value.trim();
+  const printer=printerSelect.value;
+  const time=bookingTime.value;
+  const email=userEmail.value.trim();
+  const passcode=Math.floor(100000+Math.random()*900000);
 
   try{
     await emailjs.send(
       "service_02wzsbu",
       "template_f0asueu",
-      {
-        user_name: name,
-        passcode: passcode,
-        to_email: email
-      }
+      {user_name:name,passcode:passcode,to_email:email}
     );
 
-    alert("✅ Passcode sent to your email");
+    bookings.push({
+      name,printer,time,passcode,
+      files:uploadedFiles,
+      entered:false
+    });
+
+    goToStep(3);
 
   }catch(err){
     console.error(err);
-    alert("❌ Email failed (check EmailJS keys)");
+    alert("Email failed");
   }
-
-  passcodeBox.innerText = passcode;
-  goToStep(3);
 }
 
-/* ================= PRINTER ================= */
+/* ================= LOAD PRINT VIEW ================= */
+
+function loadPrintView(){
+
+  const lastBooking=bookings[bookings.length-1];
+  if(!lastBooking) return;
+
+  selectedPrinterText.innerText=lastBooking.printer;
+  selectedTimeText.innerText=
+    new Date(lastBooking.time).toLocaleString();
+
+  const list=document.getElementById("printFileList");
+  list.innerHTML="";
+
+  lastBooking.files.forEach(f=>{
+    list.innerHTML+=`<div>📄 ${f.name}</div>`;
+  });
+
+  showOnlySelectedPrinter(lastBooking.printer);
+  updateAllDisplays();
+}
+
+/* ================= SHOW PRINTER ================= */
+
+function showOnlySelectedPrinter(printer){
+  ["Auditorium","Library","Lab"].forEach(p=>{
+    document.getElementById("card"+p).style.display=
+      (p===printer)?"block":"none";
+  });
+}
+
+/* ================= ENTER PASSCODE ================= */
 
 function enterPasscode(){
 
-  const entered = enteredPasscode.value.trim();
-
-  const booking = bookings.find(
-    b => b.passcode == entered && !b.entered && !b.cancelled
-  );
+  const entered=enteredPasscode.value.trim();
+  const booking=bookings.find(b=>b.passcode==entered && !b.entered);
 
   if(!booking){
-    statusScreen.innerText = "INVALID PASSCODE ❌";
+    statusScreen.innerText="INVALID PASSCODE ❌";
     return;
   }
 
-  const now = new Date();
-  const start = new Date(booking.time);
-  const expiry = new Date(start.getTime() + 10*60000);
-
-  if(now < start){
-    statusScreen.innerText =
-      "⏳ Too early! Print at: " +
-      start.toLocaleTimeString();
+  if(new Date()<new Date(booking.time)){
+    statusScreen.innerText="⏳ SLOT TIME NOT STARTED";
     return;
   }
 
-  if(now > expiry){
-    booking.cancelled = true;
-    alert("Duration time has completed. Please book another slot.");
-    statusScreen.innerText = "❌ SLOT EXPIRED";
-    return;
-  }
+  booking.entered=true;
+  const printer=booking.printer;
 
-  booking.entered = true;
-  printQueue.push(booking);
-  updateQueueDisplay();
-  processQueue();
+  printerQueues[printer].push(booking);
+  updateAllDisplays();
+  processQueue(printer);
 }
 
-/* ================= QUEUE ================= */
+/* ================= UPDATE COUNTS ================= */
 
-function updateQueueDisplay(){
-  const total = printQueue.length + (currentPrinting?1:0);
-  queueCount.innerText = total;
+function updateAllDisplays(){
+  jobAuditorium.innerText=
+    printerQueues.Auditorium.length+(currentPrinting.Auditorium?1:0);
+  jobLibrary.innerText=
+    printerQueues.Library.length+(currentPrinting.Library?1:0);
+  jobLab.innerText=
+    printerQueues.Lab.length+(currentPrinting.Lab?1:0);
 }
 
-function processQueue(){
+/* ================= PROCESS ================= */
 
-  if(currentPrinting || printQueue.length===0) return;
+function processQueue(printer){
 
-  currentPrinting = printQueue.shift();
-  updateQueueDisplay();
+  if(currentPrinting[printer]||printerQueues[printer].length===0) return;
 
-  statusScreen.innerText = "PRINTING: " + currentPrinting.name;
-  paper.style.top = "10px";
+  currentPrinting[printer]=printerQueues[printer].shift();
+  updateAllDisplays();
+
+  statusScreen.innerText="PRINTING ("+printer+")";
+
+  paper.style.top="10px";
 
   setTimeout(()=>{
-    statusScreen.innerText = "PRINT COMPLETED ✔";
-    paper.style.top = "-120px";
-    currentPrinting = null;
-    updateQueueDisplay();
-    processQueue();
+    statusScreen.innerText="PRINT COMPLETED ✔";
+    paper.style.top="-120px";
+
+    currentPrinting[printer]=null;
+    updateAllDisplays();
+    processQueue(printer);
   },3000);
+}
+
+/* ================= RESET ================= */
+
+function resetToStep1(){
+  goToStep(1);
 }
 </script>
 
 </body>
 </html>
-
-
