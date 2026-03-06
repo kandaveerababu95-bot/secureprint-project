@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,290 +38,395 @@
   <h1 class="text-2xl font-bold">Smart Printer Booking</h1>
 </div>
 
-<!-- ================= STEP 1 ================= -->
+<!-- STEP 1 -->
 <div id="step1">
-  <h2 class="font-semibold mb-3">Step 1: Book Time Slot</h2>
+<h2 class="font-semibold mb-3">Step 1: Book Time Slot</h2>
 
-  <input id="username" placeholder="Enter Your Name"
-    class="border rounded-lg p-2 w-full mb-3">
+<input id="username" placeholder="Enter Your Name"
+class="border rounded-lg p-2 w-full mb-3">
 
-  <input id="userEmail" type="email" placeholder="Enter Your Email"
-    class="border rounded-lg p-2 w-full mb-3">
+<input id="userEmail" type="email"
+placeholder="Enter Your Email"
+class="border rounded-lg p-2 w-full mb-3">
 
-  <input type="datetime-local" id="bookingTime"
-    class="border rounded-lg p-2 w-full mb-4">
+<input type="datetime-local"
+id="bookingTime"
+class="border rounded-lg p-2 w-full mb-4">
 
-  <button onclick="goToStep(2)"
-    class="w-full bg-blue-600 text-white py-2 rounded-xl">
-    Next →
-  </button>
+<button onclick="goToStep(2)"
+class="w-full bg-blue-600 text-white py-2 rounded-xl">
+Next →
+</button>
 </div>
 
-<!-- ================= STEP 2 ================= -->
+<!-- STEP 2 -->
 <div id="step2" class="hiddenStep">
-  <h2 class="font-semibold mb-3">Step 2: Select Printer</h2>
 
-  <select id="printerSelect" class="border rounded-lg p-2 w-full mb-4">
-    <option value="Auditorium">Printer 1 - Auditorium</option>
-    <option value="Library">Printer 2 - Library</option>
-    <option value="Lab">Printer 3 - Lab</option>
-  </select>
+<h2 class="font-semibold mb-3">Step 2: Select Printer</h2>
 
-  <button onclick="sendPasscodeEmail()"
-    class="w-full bg-blue-600 text-white py-2 rounded-xl">
-    Generate Passcode →
-  </button>
+<select id="printerSelect"
+class="border rounded-lg p-2 w-full mb-4">
+
+<option value="Auditorium">Printer 1 - Auditorium</option>
+<option value="Library">Printer 2 - Library</option>
+<option value="Lab">Printer 3 - Lab</option>
+
+</select>
+
+<button onclick="sendPasscodeEmail()"
+class="w-full bg-blue-600 text-white py-2 rounded-xl">
+Generate Passcode →
+</button>
+
 </div>
 
-<!-- ================= STEP 3 ================= -->
+<!-- STEP 3 -->
 <div id="step3" class="hiddenStep">
-  <h2 class="font-semibold mb-3">Step 3: Passcode Sent</h2>
 
-  <div class="text-center text-green-600 font-bold mb-4">
-    ✅ Passcode sent to your email
-  </div>
+<h2 class="font-semibold mb-3">Step 3: Passcode Sent</h2>
 
-  <button onclick="goToStep(4)"
-    class="w-full bg-blue-600 text-white py-2 rounded-xl mb-2">
-    Go to Print →
-  </button>
-
-  <button onclick="resetToStep1()"
-    class="w-full bg-gray-300 py-2 rounded-xl">
-    Book Another Slot
-  </button>
+<div class="text-center text-green-600 font-bold mb-4">
+✅ Passcode sent to your email
 </div>
 
-<!-- ================= STEP 4 ================= -->
+<button onclick="goToStep(4)"
+class="w-full bg-blue-600 text-white py-2 rounded-xl mb-2">
+Go to Print →
+</button>
+
+<button onclick="resetToStep1()"
+class="w-full bg-gray-300 py-2 rounded-xl">
+Book Another Slot
+</button>
+
+</div>
+
+<!-- STEP 4 DASHBOARD -->
 <div id="step4" class="hiddenStep">
 
-  <div class="bg-gradient-to-b from-gray-700 to-gray-900 text-white rounded-2xl p-6 shadow-xl">
+<div class="bg-gradient-to-b from-gray-700 to-gray-900 text-white rounded-2xl p-6 shadow-xl">
 
-    <div class="font-bold mb-4 text-lg">SMART IoT PRINTER DASHBOARD</div>
-
-    <div id="statusScreen"
-      class="bg-black text-lime-400 font-mono p-3 rounded mb-4">
-      STATUS: IDLE
-    </div>
-
-    <!-- ✅ SELECTED INFO -->
-    <div class="bg-black rounded p-3 mb-4 text-sm">
-      <div><b>Printer:</b> <span id="selectedPrinterText"></span></div>
-      <div><b>Slot Time:</b> <span id="selectedTimeText"></span></div>
-
-      <div class="mt-2"><b>Files to Print:</b></div>
-      <div id="printFileList" class="text-lime-400"></div>
-    </div>
-
-    <!-- PRINTER CARDS -->
-    <div class="grid grid-cols-3 gap-3 mb-4">
-
-      <div id="cardAuditorium" class="printer-card bg-gray-800 rounded-xl p-3 text-center">
-        <div class="font-bold">Auditorium</div>
-        <div class="text-2xl" id="jobAuditorium">0</div>
-        <div class="text-xs text-gray-300">jobs</div>
-      </div>
-
-      <div id="cardLibrary" class="printer-card bg-gray-800 rounded-xl p-3 text-center">
-        <div class="font-bold">Library</div>
-        <div class="text-2xl" id="jobLibrary">0</div>
-        <div class="text-xs text-gray-300">jobs</div>
-      </div>
-
-      <div id="cardLab" class="printer-card bg-gray-800 rounded-xl p-3 text-center">
-        <div class="font-bold">Lab</div>
-        <div class="text-2xl" id="jobLab">0</div>
-        <div class="text-xs text-gray-300">jobs</div>
-      </div>
-
-    </div>
-
-    <input id="enteredPasscode" placeholder="Enter Passcode"
-      class="text-black p-2 rounded mr-2">
-    <button onclick="enterPasscode()" class="bg-blue-600 px-3 py-2 rounded">
-      Print
-    </button>
-
-    <div class="relative mt-6 h-28 bg-black rounded overflow-hidden">
-      <div id="paper" class="paper"></div>
-    </div>
-
-  </div>
+<div class="font-bold mb-4 text-lg">
+SMART IoT PRINTER DASHBOARD
 </div>
 
+<div id="statusScreen"
+class="bg-black text-lime-400 font-mono p-3 rounded mb-4">
+STATUS: IDLE
+</div>
+
+<div class="bg-black rounded p-3 mb-4 text-sm">
+
+<div><b>Printer:</b>
+<span id="selectedPrinterText"></span></div>
+
+<div><b>Slot Time:</b>
+<span id="selectedTimeText"></span></div>
+
+<div class="mt-2"><b>Files to Print:</b></div>
+
+<div id="printFileList"
+class="text-lime-400"></div>
+
+</div>
+
+<!-- PRINTER CARDS -->
+
+<div class="grid grid-cols-3 gap-3 mb-4">
+
+<div id="cardAuditorium"
+class="printer-card bg-gray-800 rounded-xl p-3 text-center">
+
+<div class="font-bold">Auditorium</div>
+<div class="text-2xl" id="jobAuditorium">0</div>
+<div class="text-xs text-gray-300">jobs</div>
+
+</div>
+
+<div id="cardLibrary"
+class="printer-card bg-gray-800 rounded-xl p-3 text-center">
+
+<div class="font-bold">Library</div>
+<div class="text-2xl" id="jobLibrary">0</div>
+<div class="text-xs text-gray-300">jobs</div>
+
+</div>
+
+<div id="cardLab"
+class="printer-card bg-gray-800 rounded-xl p-3 text-center">
+
+<div class="font-bold">Lab</div>
+<div class="text-2xl" id="jobLab">0</div>
+<div class="text-xs text-gray-300">jobs</div>
+
+</div>
+
+</div>
+
+<input id="enteredPasscode"
+placeholder="Enter Passcode"
+class="text-black p-2 rounded mr-2">
+
+<button onclick="enterPasscode()"
+class="bg-blue-600 px-3 py-2 rounded">
+Print
+</button>
+
+<div class="relative mt-6 h-28 bg-black rounded overflow-hidden">
+<div id="paper" class="paper"></div>
+</div>
+
+</div>
+</div>
 </div>
 
 <script>
+
 lucide.createIcons();
-(function(){emailjs.init("WNKsaeu7XjvuUWBWc");})();
 
-/* ================= LOAD FILES ================= */
+(function(){
+emailjs.init("WNKsaeu7XjvuUWBWc");
+})();
 
-let uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles")||"[]");
+/* FILES FROM UPLOAD PAGE */
 
-/* ================= DATA ================= */
+let uploadedFiles =
+JSON.parse(localStorage.getItem("uploadedFiles") || "[]");
 
-let bookings=[];
+/* BOOKINGS STORAGE */
+
+let bookings =
+JSON.parse(localStorage.getItem("bookings") || "[]");
+
+/* PRINTER DATA */
 
 let printerQueues={
-  Auditorium:[],
-  Library:[],
-  Lab:[]
+Auditorium:[],
+Library:[],
+Lab:[]
 };
 
 let currentPrinting={
-  Auditorium:null,
-  Library:null,
-  Lab:null
+Auditorium:null,
+Library:null,
+Lab:null
 };
 
-/* ================= STEP NAV ================= */
+/* STEP NAVIGATION */
 
 function goToStep(step){
 
-  if(step===2){
-    if(!username.value.trim()) return alert("Enter your name");
-    if(!userEmail.value.trim()) return alert("Enter your email");
-    if(!bookingTime.value) return alert("Select booking time");
-    if(!uploadedFiles.length) return alert("Upload file first");
-  }
+if(step===2){
 
-  document.querySelectorAll("[id^=step]")
-    .forEach(s=>s.classList.add("hiddenStep"));
+if(!username.value.trim())
+return alert("Enter your name");
 
-  document.getElementById("step"+step)
-    .classList.remove("hiddenStep");
+if(!userEmail.value.trim())
+return alert("Enter your email");
 
-  if(step===4) loadPrintView();
+if(!bookingTime.value)
+return alert("Select booking time");
+
+if(!uploadedFiles.length)
+return alert("Upload file first");
+
 }
 
-/* ================= SEND EMAIL ================= */
+document
+.querySelectorAll("[id^=step]")
+.forEach(s=>s.classList.add("hiddenStep"));
+
+document
+.getElementById("step"+step)
+.classList.remove("hiddenStep");
+
+if(step===4) loadPrintView();
+
+}
+
+/* SEND PASSCODE */
 
 async function sendPasscodeEmail(){
 
-  const name=username.value.trim();
-  const printer=printerSelect.value;
-  const time=bookingTime.value;
-  const email=userEmail.value.trim();
-  const passcode=Math.floor(100000+Math.random()*900000);
+const name=username.value.trim();
+const printer=printerSelect.value;
+const time=bookingTime.value;
+const email=userEmail.value.trim();
 
-  try{
-    await emailjs.send(
-      "service_02wzsbu",
-      "template_f0asueu",
-      {user_name:name,passcode:passcode,to_email:email}
-    );
+const passcode=
+Math.floor(100000+Math.random()*900000);
 
-    bookings.push({
-      name,printer,time,passcode,
-      files:uploadedFiles,
-      entered:false
-    });
+try{
 
-    goToStep(3);
+await emailjs.send(
+"service_02wzsbu",
+"template_f0asueu",
+{
+user_name:name,
+passcode:passcode,
+to_email:email
+}
+);
 
-  }catch(err){
-    console.error(err);
-    alert("Email failed");
-  }
+const booking={
+name,
+printer,
+time,
+passcode,
+files:uploadedFiles,
+entered:false
+};
+
+bookings.push(booking);
+
+localStorage.setItem(
+"bookings",
+JSON.stringify(bookings)
+);
+
+goToStep(3);
+
+}catch(err){
+
+console.error(err);
+alert("Email failed");
+
 }
 
-/* ================= LOAD PRINT VIEW ================= */
+}
+
+/* LOAD DASHBOARD */
 
 function loadPrintView(){
 
-  const lastBooking=bookings[bookings.length-1];
-  if(!lastBooking) return;
+const lastBooking=
+bookings[bookings.length-1];
 
-  selectedPrinterText.innerText=lastBooking.printer;
-  selectedTimeText.innerText=
-    new Date(lastBooking.time).toLocaleString();
+if(!lastBooking) return;
 
-  const list=document.getElementById("printFileList");
-  list.innerHTML="";
+selectedPrinterText.innerText=
+lastBooking.printer;
 
-  lastBooking.files.forEach(f=>{
-    list.innerHTML+=`<div>📄 ${f.name}</div>`;
-  });
+selectedTimeText.innerText=
+new Date(lastBooking.time)
+.toLocaleString();
 
-  showOnlySelectedPrinter(lastBooking.printer);
-  updateAllDisplays();
+const list=
+document.getElementById("printFileList");
+
+list.innerHTML="";
+
+lastBooking.files.forEach(f=>{
+list.innerHTML+=`<div>📄 ${f.name}</div>`;
+});
+
+/* LOAD ALL BOOKINGS INTO QUEUES */
+
+printerQueues={
+Auditorium:
+bookings.filter(b=>b.printer==="Auditorium"),
+
+Library:
+bookings.filter(b=>b.printer==="Library"),
+
+Lab:
+bookings.filter(b=>b.printer==="Lab")
+};
+
+updateAllDisplays();
+
 }
 
-/* ================= SHOW PRINTER ================= */
-
-function showOnlySelectedPrinter(printer){
-  ["Auditorium","Library","Lab"].forEach(p=>{
-    document.getElementById("card"+p).style.display=
-      (p===printer)?"block":"none";
-  });
-}
-
-/* ================= ENTER PASSCODE ================= */
+/* PASSCODE PRINT */
 
 function enterPasscode(){
 
-  const entered=enteredPasscode.value.trim();
-  const booking=bookings.find(b=>b.passcode==entered && !b.entered);
+const entered=
+enteredPasscode.value.trim();
 
-  if(!booking){
-    statusScreen.innerText="INVALID PASSCODE ❌";
-    return;
-  }
+const booking=
+bookings.find(b=>b.passcode==entered);
 
-  if(new Date()<new Date(booking.time)){
-    statusScreen.innerText="⏳ SLOT TIME NOT STARTED";
-    return;
-  }
+if(!booking){
 
-  booking.entered=true;
-  const printer=booking.printer;
+statusScreen.innerText=
+"INVALID PASSCODE ❌";
 
-  printerQueues[printer].push(booking);
-  updateAllDisplays();
-  processQueue(printer);
+return;
+
 }
 
-/* ================= UPDATE COUNTS ================= */
+const printer=booking.printer;
+
+printerQueues[printer].push(booking);
+
+updateAllDisplays();
+
+processQueue(printer);
+
+}
+
+/* UPDATE JOB COUNTS */
 
 function updateAllDisplays(){
-  jobAuditorium.innerText=
-    printerQueues.Auditorium.length+(currentPrinting.Auditorium?1:0);
-  jobLibrary.innerText=
-    printerQueues.Library.length+(currentPrinting.Library?1:0);
-  jobLab.innerText=
-    printerQueues.Lab.length+(currentPrinting.Lab?1:0);
+
+jobAuditorium.innerText=
+printerQueues.Auditorium.length;
+
+jobLibrary.innerText=
+printerQueues.Library.length;
+
+jobLab.innerText=
+printerQueues.Lab.length;
+
 }
 
-/* ================= PROCESS ================= */
+/* PRINT PROCESS */
 
 function processQueue(printer){
 
-  if(currentPrinting[printer]||printerQueues[printer].length===0) return;
+if(
+currentPrinting[printer] ||
+printerQueues[printer].length===0
+) return;
 
-  currentPrinting[printer]=printerQueues[printer].shift();
-  updateAllDisplays();
+currentPrinting[printer]=
+printerQueues[printer].shift();
 
-  statusScreen.innerText="PRINTING ("+printer+")";
+updateAllDisplays();
 
-  paper.style.top="10px";
+statusScreen.innerText=
+"PRINTING ("+printer+")";
 
-  setTimeout(()=>{
-    statusScreen.innerText="PRINT COMPLETED ✔";
-    paper.style.top="-120px";
+paper.style.top="10px";
 
-    currentPrinting[printer]=null;
-    updateAllDisplays();
-    processQueue(printer);
-  },3000);
+setTimeout(()=>{
+
+statusScreen.innerText=
+"PRINT COMPLETED ✔";
+
+paper.style.top="-120px";
+
+currentPrinting[printer]=null;
+
+updateAllDisplays();
+
+processQueue(printer);
+
+},3000);
+
 }
 
-/* ================= RESET ================= */
+/* RESET */
 
 function resetToStep1(){
-  goToStep(1);
+
+goToStep(1);
+
 }
+
 </script>
 
 </body>
 </html>
+```
