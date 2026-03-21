@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Printer Booking — GVP</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<style>
+  :root {
+    --navy: #0f1b3d;
+    --blue: #1e40af;
+    --accent: #f59e0b;
+    --gold: #d97706;
+    --light: #eff6ff;
+    --card: #ffffff;
+    --border: #dbeafe;
+    --text: #1e293b;
+    --muted: #64748b;
+    --green: #059669;
+    --red: #dc2626;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f0f4ff;
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* Background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(30,64,175,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(245,158,11,0.06) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e40af' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .content { position: relative; z-index: 1; }
+
+  /* Header */
+  .site-header {
+    background: linear-gradient(135deg, var(--navy) 0%, #1e3a8a 100%);
+    padding: 0;
+    box-shadow: 0 4px 24px rgba(15,27,61,0.3);
+  }
+
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-ring {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px rgba(245,158,11,0.2);
+  }
+  .logo-ring img { width: 100%; height: 100%; object-fit: cover; }
+
+  .header-text h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.4;
+  }
+  .header-text p {
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Step pill nav */
+  .step-nav {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .step-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    transition: all .3s;
+    color: var(--muted);
+    background: transparent;
+  }
+  .step-pill.active {
+    background: var(--blue);
+    color: white;
+    box-shadow: 0 4px 12px rgba(30,64,175,0.35);
+  }
+  .step-pill.done {
+    background: var(--green);
+    color: white;
+  }
+  .step-connector {
+    height: 2px;
+    width: 32px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .step-connector.done { background: var(--green); }
+
+  /* Card */
+  .card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 2px 24px rgba(15,27,61,0.08), 0 1px 4px rgba(15,27,61,0.04);
+    border: 1px solid rgba(219,234,254,0.8);
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+  }
+  .card-header p { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+  .card-header-icon {
+    width: 42px; height: 42px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .card-body { padding: 24px; }
+
+  /* Inputs */
+  .field-group { margin-bottom: 16px; }
+  .field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .field-input {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: #f8faff;
+    transition: all .2s;
+    outline: none;
+  }
+  .field-input:focus {
+    border-color: var(--blue);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(30,64,175,0.08);
+  }
+
+  select.field-input { cursor: pointer; }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, var(--blue) 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all .2s;
+    box-shadow: 0 4px 16px rgba(30,64,175,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(30,64,175,0.4);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    width: 100%;
+    height: 44px;
+    background: #f1f5f9;
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-secondary:hover { background: #e2e8f0; }
+
+  .btn-gold {
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--accent) 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all .2s;
+    box-shadow: 0 4px 16px rgba(217,119,6,0.3);
+  }
+  .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(217,119,6,0.45); }
+
+  /* Printer cards */
+  .printer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+
+  .printer-card {
+    background: linear-gradient(145deg, #0f1b3d 0%, #1e3a8a 100%);
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all .25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .printer-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), #fbbf24);
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .printer-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245,158,11,0.2), 0 8px 24px rgba(15,27,61,0.3);
+  }
+  .printer-card.selected::before { opacity: 1; }
+  .printer-card:hover { transform: translateY(-2px); }
+
+  .printer-card .printer-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+  }
+  .printer-card .job-count {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #34d399;
+    line-height: 1;
+  }
+  .printer-card .job-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+  /* Status screen */
+  .status-screen {
+    background: #0a1628;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #4ade80;
+    border: 1.5px solid #1e3a5f;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    flex-shrink: 0;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* Bookings table */
+  .bookings-section {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 2px 24px rgba(15,27,61,0.08);
+    border: 1px solid rgba(219,234,254,0.8);
+    overflow: hidden;
+  }
+
+  .bookings-header {
+    background: linear-gradient(135deg, var(--navy) 0%, #1e3a8a 100%);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .bookings-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge {
+    background: var(--accent);
+    color: var(--navy);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .booking-row {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 16px 24px;
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 2fr;
+    align-items: start;
+    gap: 12px;
+    transition: background .15s;
+    animation: slideIn .3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform:translateY(-6px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  .booking-row:hover { background: #f8faff; }
+  .booking-row:last-child { border-bottom: none; }
+
+  .booking-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--navy);
+    font-family: 'Syne', sans-serif;
+  }
+  .booking-email { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .booking-time { font-size: 13px; font-weight: 600; color: var(--text); }
+  .booking-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .printer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+  }
+  .printer-badge.auditorium { background: #ede9fe; color: #6d28d9; }
+  .printer-badge.library { background: #dcfce7; color: #166534; }
+  .printer-badge.lab { background: #fff7ed; color: #c2410c; }
+
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f0f4ff;
+    border: 1px solid #dbeafe;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    color: var(--blue);
+    margin: 2px 2px 2px 0;
+    font-weight: 500;
+  }
+
+  .col-header {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 10px 24px;
+    background: #f8faff;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 2fr;
+    gap: 12px;
+  }
+
+  .empty-bookings {
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty-bookings svg { margin: 0 auto 12px; opacity: .4; }
+
+  /* Print animation */
+  .printer-vis {
+    position: relative;
+    height: 100px;
+    background: #0a1628;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .printer-body {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 80px; height: 50px;
+    background: #1e3a8a;
+    border-radius: 8px 8px 0 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .paper-out {
+    width: 60%; height: 6px;
+    background: white;
+    border-radius: 4px;
+    position: absolute;
+    top: -120px;
+    left: 20%;
+    transition: top 2s ease;
+  }
+
+  /* Passcode input row */
+  .passcode-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .passcode-row input {
+    flex: 1;
+    height: 46px;
+    padding: 0 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--navy);
+    outline: none;
+    background: #f8faff;
+    transition: all .2s;
+  }
+  .passcode-row input:focus {
+    border-color: var(--blue);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(30,64,175,0.08);
+  }
+  .passcode-row button {
+    height: 46px;
+    padding: 0 20px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .passcode-row button:hover { background: #1d4ed8; }
+
+  .hiddenStep { display: none; }
+
+  /* Success animation */
+  .success-box {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 1.5px solid #6ee7b7;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .success-icon {
+    width: 64px; height: 64px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 24px rgba(5,150,105,0.3);
+  }
+  .success-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #065f46;
+    margin-bottom: 6px;
+  }
+  .passcode-display {
+    font-family: 'Courier New', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--blue);
+    letter-spacing: 0.2em;
+    background: white;
+    border: 2px solid var(--blue);
+    border-radius: 12px;
+    padding: 12px 24px;
+    display: inline-block;
+    margin: 12px 0;
+    box-shadow: 0 4px 16px rgba(30,64,175,0.15);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .printer-grid { grid-template-columns: repeat(3,1fr); gap:8px; }
+    .booking-row { grid-template-columns: 1fr 1fr; }
+    .col-header { grid-template-columns: 1fr 1fr; }
+    .booking-row > *:nth-child(3),
+    .booking-row > *:nth-child(4),
+    .col-header > *:nth-child(3),
+    .col-header > *:nth-child(4) { display:none; }
+  }
+</style>
+</head>
+
+<body>
+<div class="content">
+
+<!-- ===== HEADER ===== -->
+<div class="site-header">
+  <div class="header-inner">
+    <div class="logo-ring">
+      <img src="gvpcdpgc.jpg" alt="GVP Logo" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:linear-gradient(135deg,#1e40af,#7c3aed);display:flex;align-items:center;justify-content:center;\'><span style=\'color:white;font-weight:900;font-size:18px;\'>GVP</span></div>'">
+    </div>
+    <div class="header-text">
+      <h1>Smart Printer Booking — GVP College</h1>
+      <p>Secure Mobile-Based Printing System · Batch C7</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STEP NAV ===== -->
+<div class="step-nav" id="stepNav">
+  <div class="step-pill active" id="pill1">
+    <span>1</span> Book Slot
+  </div>
+  <div class="step-connector" id="conn1"></div>
+  <div class="step-pill" id="pill2">
+    <span>2</span> Select Printer
+  </div>
+  <div class="step-connector" id="conn2"></div>
+  <div class="step-pill" id="pill3">
+    <span>3</span> Passcode Sent
+  </div>
+  <div class="step-connector" id="conn3"></div>
+  <div class="step-pill" id="pill4">
+    <span>4</span> Print
+  </div>
+</div>
+
+<!-- ===== MAIN LAYOUT ===== -->
+<div style="max-width:1100px;margin:0 auto;padding:20px 24px 40px;display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start;" id="mainGrid">
+
+  <!-- LEFT COLUMN: steps -->
+  <div>
+
+    <!-- STEP 1 -->
+    <div id="step1" class="card">
+      <div class="card-header">
+        <div class="card-header-icon">
+          <i data-lucide="calendar" style="width:22px;height:22px;color:white;"></i>
+        </div>
+        <div>
+          <h2>Book a Time Slot</h2>
+          <p>Reserve your printing session</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-group">
+          <label class="field-label">Your Full Name</label>
+          <input id="username" class="field-input" placeholder="e.g. Rongali Mounika">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email Address</label>
+          <input id="userEmail" type="email" class="field-input" placeholder="student@gvpcdpgc.edu.in">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Preferred Date & Time</label>
+          <input id="bookingTime" type="datetime-local" class="field-input">
+        </div>
+        <button class="btn-primary" onclick="goToStep(2)">
+          Next: Choose Printer <i data-lucide="arrow-right" style="width:17px;height:17px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="step2" class="card hiddenStep">
+      <div class="card-header">
+        <div class="card-header-icon">
+          <i data-lucide="printer" style="width:22px;height:22px;color:white;"></i>
+        </div>
+        <div>
+          <h2>Select Your Printer</h2>
+          <p>Choose the nearest available printer</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="printer-grid" id="printerSelectorGrid">
+          <div class="printer-card selected" onclick="selectPrinter('Auditorium', this)">
+            <div style="font-size:24px;margin-bottom:8px;">🏛️</div>
+            <div class="printer-name">Auditorium</div>
+            <div class="job-count" id="sel-Auditorium">0</div>
+            <div class="job-label">in queue</div>
+          </div>
+          <div class="printer-card" onclick="selectPrinter('Library', this)">
+            <div style="font-size:24px;margin-bottom:8px;">📚</div>
+            <div class="printer-name">Library</div>
+            <div class="job-count" id="sel-Library">0</div>
+            <div class="job-label">in queue</div>
+          </div>
+          <div class="printer-card" onclick="selectPrinter('Lab', this)">
+            <div style="font-size:24px;margin-bottom:8px;">🖥️</div>
+            <div class="printer-name">Lab</div>
+            <div class="job-count" id="sel-Lab">0</div>
+            <div class="job-label">in queue</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Selected Printer</label>
+          <select id="printerSelect" class="field-input">
+            <option value="Auditorium">Printer 1 — Auditorium</option>
+            <option value="Library">Printer 2 — Library</option>
+            <option value="Lab">Printer 3 — Lab</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="sendPasscodeEmail()">
+          <i data-lucide="send" style="width:17px;height:17px;"></i>
+          Generate &amp; Send Passcode
+        </button>
+        <button class="btn-secondary" style="margin-top:10px;" onclick="goToStep(1)">← Back</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="step3" class="card hiddenStep">
+      <div class="card-header" style="background:linear-gradient(135deg,#065f46,#059669);">
+        <div class="card-header-icon" style="background:rgba(255,255,255,0.2);">
+          <i data-lucide="check-circle" style="width:22px;height:22px;color:white;"></i>
+        </div>
+        <div>
+          <h2>Passcode Sent!</h2>
+          <p>Check your email inbox</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="success-box">
+          <div class="success-icon">
+            <i data-lucide="mail-check" style="width:30px;height:30px;color:white;"></i>
+          </div>
+          <div class="success-title">Booking Confirmed ✓</div>
+          <p style="font-size:13px;color:#047857;margin-bottom:8px;">Your 6-digit passcode has been sent to</p>
+          <p id="confirmedEmail" style="font-weight:700;color:#065f46;font-size:15px;"></p>
+          <div class="passcode-display" id="passcodePreview">••••••</div>
+          <p style="font-size:12px;color:#6ee7b7;margin-top:4px;">Keep this code secret — use it at the printer</p>
+        </div>
+        <button class="btn-gold" onclick="goToStep(4)" style="margin-bottom:10px;">
+          <i data-lucide="printer" style="width:17px;height:17px;"></i>
+          Go to Print Dashboard
+        </button>
+        <button class="btn-secondary" onclick="resetToStep1()">
+          <i data-lucide="plus"></i> Book Another Slot
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 4: DASHBOARD -->
+    <div id="step4" class="card hiddenStep">
+      <div class="card-header" style="background:linear-gradient(135deg,#0f1b3d,#1e3a8a);">
+        <div class="card-header-icon">
+          <i data-lucide="monitor" style="width:22px;height:22px;color:#4ade80;"></i>
+        </div>
+        <div>
+          <h2>IoT Print Dashboard</h2>
+          <p>Real-time printer status</p>
+        </div>
+      </div>
+      <div class="card-body" style="background:#0f1b3d;padding:20px;border-radius:0 0 20px 20px;">
+
+        <!-- Status -->
+        <div class="status-screen" id="statusScreen">
+          <div class="status-dot"></div>
+          STATUS: IDLE
+        </div>
+
+        <!-- Info row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div style="background:#1e3a8a;border-radius:12px;padding:12px;">
+            <p style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Printer</p>
+            <p id="selectedPrinterText" style="color:white;font-weight:700;font-family:'Syne',sans-serif;"></p>
+          </div>
+          <div style="background:#1e3a8a;border-radius:12px;padding:12px;">
+            <p style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Slot Time</p>
+            <p id="selectedTimeText" style="color:white;font-weight:700;font-size:12px;font-family:'Syne',sans-serif;"></p>
+          </div>
+        </div>
+
+        <!-- Files -->
+        <div style="background:#1e3a8a;border-radius:12px;padding:12px;margin-bottom:16px;">
+          <p style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Files to Print</p>
+          <div id="printFileList"></div>
+        </div>
+
+        <!-- Printer counters -->
+        <div class="printer-grid" style="margin-bottom:16px;">
+          <div class="printer-card" style="cursor:default;">
+            <div style="font-size:18px;margin-bottom:4px;">🏛️</div>
+            <div class="printer-name" style="font-size:12px;">Auditorium</div>
+            <div class="job-count" id="jobAuditorium">0</div>
+            <div class="job-label">jobs</div>
+          </div>
+          <div class="printer-card" style="cursor:default;">
+            <div style="font-size:18px;margin-bottom:4px;">📚</div>
+            <div class="printer-name" style="font-size:12px;">Library</div>
+            <div class="job-count" id="jobLibrary">0</div>
+            <div class="job-label">jobs</div>
+          </div>
+          <div class="printer-card" style="cursor:default;">
+            <div style="font-size:18px;margin-bottom:4px;">🖥️</div>
+            <div class="printer-name" style="font-size:12px;">Lab</div>
+            <div class="job-count" id="jobLab">0</div>
+            <div class="job-label">jobs</div>
+          </div>
+        </div>
+
+        <!-- Passcode entry -->
+        <div class="passcode-row">
+          <input id="enteredPasscode" placeholder="Enter 6-digit passcode" maxlength="6">
+          <button onclick="enterPasscode()">
+            <i data-lucide="printer" style="width:16px;height:16px;"></i>
+            Print Now
+          </button>
+        </div>
+
+        <!-- Print animation -->
+        <div class="printer-vis">
+          <div id="paper" class="paper-out"></div>
+          <div class="printer-body">
+            <i data-lucide="printer" style="width:28px;height:28px;color:white;"></i>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- RIGHT COLUMN: Bookings list -->
+  <div id="rightPanel">
+    <div class="bookings-section">
+      <div class="bookings-header">
+        <h3>
+          <i data-lucide="users" style="width:18px;height:18px;color:rgba(255,255,255,0.7);"></i>
+          All Booked Slots
+          <span class="badge" id="totalBadge">0</span>
+        </h3>
+        <button onclick="clearAllBookings()" style="font-size:11px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">
+          Clear all
+        </button>
+      </div>
+
+      <div class="col-header">
+        <span>User</span>
+        <span>Slot Time</span>
+        <span>Printer</span>
+        <span>Files</span>
+      </div>
+
+      <div id="bookingsList">
+        <div class="empty-bookings">
+          <i data-lucide="calendar-x" style="display:block;width:36px;height:36px;"></i>
+          <p style="font-size:14px;font-weight:600;margin-bottom:4px;">No bookings yet</p>
+          <p style="font-size:12px;">Completed bookings will appear here</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /mainGrid -->
+</div><!-- /content -->
+
+<script>
+lucide.createIcons();
+
+(function(){ emailjs.init("WNKsaeu7XjvuUWBWc"); })();
+
+/* ======= STATE ======= */
+let uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles") || "[]");
+let bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
+let selectedPrinter = "Auditorium";
+let generatedPasscode = null;
+
+let printerQueues = { Auditorium:[], Library:[], Lab:[] };
+let currentPrinting = { Auditorium:null, Library:null, Lab:null };
+
+/* ======= STEP NAVIGATION ======= */
+function goToStep(step) {
+  if (step === 2) {
+    if (!document.getElementById("username").value.trim()) return alert("Please enter your name");
+    if (!document.getElementById("userEmail").value.trim()) return alert("Please enter your email");
+    if (!document.getElementById("bookingTime").value) return alert("Please select a booking time");
+    if (!uploadedFiles.length) return alert("Please upload files first");
+    updateSelectorQueueCounts();
+  }
+
+  document.querySelectorAll("[id^=step]").forEach(s => s.classList.add("hiddenStep"));
+  document.getElementById("step" + step).classList.remove("hiddenStep");
+
+  // update pill nav
+  ['pill1','pill2','pill3','pill4'].forEach((id, i) => {
+    const pill = document.getElementById(id);
+    pill.classList.remove('active','done');
+    if (i+1 < step) pill.classList.add('done');
+    else if (i+1 === step) pill.classList.add('active');
+  });
+  ['conn1','conn2','conn3'].forEach((id, i) => {
+    const c = document.getElementById(id);
+    c.classList.toggle('done', i+1 < step);
+  });
+
+  if (step === 4) loadPrintView();
+}
+
+/* ======= PRINTER SELECTOR ======= */
+function selectPrinter(name, el) {
+  selectedPrinter = name;
+  document.getElementById("printerSelect").value = name;
+  document.querySelectorAll("#printerSelectorGrid .printer-card").forEach(c => c.classList.remove("selected"));
+  el.classList.add("selected");
+}
+
+function updateSelectorQueueCounts() {
+  ['Auditorium','Library','Lab'].forEach(p => {
+    const count = bookings.filter(b => b.printer === p).length;
+    const el = document.getElementById("sel-" + p);
+    if (el) el.innerText = count;
+  });
+}
+
+/* ======= SEND PASSCODE ======= */
+async function sendPasscodeEmail() {
+  const name = document.getElementById("username").value.trim();
+  const email = document.getElementById("userEmail").value.trim();
+  const printer = document.getElementById("printerSelect").value;
+  const time = document.getElementById("bookingTime").value;
+
+  generatedPasscode = Math.floor(100000 + Math.random() * 900000);
+
+  try {
+    await emailjs.send("service_02wzsbu", "template_f0asueu", {
+      user_name: name,
+      passcode: generatedPasscode,
+      to_email: email
+    });
+
+    const booking = {
+      id: Date.now(),
+      name, email, printer, time,
+      passcode: generatedPasscode,
+      files: uploadedFiles,
+      entered: false,
+      bookedAt: new Date().toISOString()
+    };
+
+    bookings.push(booking);
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+
+    document.getElementById("confirmedEmail").innerText = email;
+    document.getElementById("passcodePreview").innerText = generatedPasscode;
+
+    renderBookingsList();
+    goToStep(3);
+
+  } catch(err) {
+    console.error(err);
+    // still save locally even if email fails
+    const booking = {
+      id: Date.now(),
+      name, email, printer, time,
+      passcode: generatedPasscode,
+      files: uploadedFiles,
+      entered: false,
+      bookedAt: new Date().toISOString()
+    };
+    bookings.push(booking);
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+
+    document.getElementById("confirmedEmail").innerText = email;
+    document.getElementById("passcodePreview").innerText = generatedPasscode;
+
+    renderBookingsList();
+    goToStep(3);
+  }
+}
+
+/* ======= RENDER BOOKINGS LIST ======= */
+function renderBookingsList() {
+  const container = document.getElementById("bookingsList");
+  const badge = document.getElementById("totalBadge");
+  badge.innerText = bookings.length;
+
+  if (bookings.length === 0) {
+    container.innerHTML = `
+      <div class="empty-bookings">
+        <i data-lucide="calendar-x" style="display:block;width:36px;height:36px;"></i>
+        <p style="font-size:14px;font-weight:600;margin-bottom:4px;">No bookings yet</p>
+        <p style="font-size:12px;">Completed bookings will appear here</p>
+      </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = bookings.map(b => {
+    const dt = new Date(b.time);
+    const timeStr = dt.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',hour12:true});
+    const dateStr = dt.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+
+    const printerClass = b.printer === 'Auditorium' ? 'auditorium' : b.printer === 'Library' ? 'library' : 'lab';
+    const printerEmoji = b.printer === 'Auditorium' ? '🏛️' : b.printer === 'Library' ? '📚' : '🖥️';
+
+    const filesHtml = (b.files || []).map(f =>
+      `<span class="file-chip"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${f.name}</span>`
+    ).join('') || '<span style="color:#94a3b8;font-size:12px;">—</span>';
+
+    return `
+      <div class="booking-row">
+        <div>
+          <div class="booking-name">${b.name}</div>
+          <div class="booking-email">${b.email}</div>
+        </div>
+        <div>
+          <div class="booking-time">${timeStr}</div>
+          <div class="booking-date">${dateStr}</div>
+        </div>
+        <div>
+          <span class="printer-badge ${printerClass}">${printerEmoji} ${b.printer}</span>
+        </div>
+        <div style="flex-wrap:wrap;display:flex;">${filesHtml}</div>
+      </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+/* ======= LOAD PRINT VIEW ======= */
+function loadPrintView() {
+  const last = bookings[bookings.length - 1];
+  if (!last) return;
+
+  document.getElementById("selectedPrinterText").innerText = last.printer;
+  document.getElementById("selectedTimeText").innerText = new Date(last.time).toLocaleString('en-IN');
+
+  const list = document.getElementById("printFileList");
+  list.innerHTML = (last.files || []).map(f =>
+    `<div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.8);font-size:13px;margin-bottom:4px;">
+      <span style="color:#4ade80;">📄</span> ${f.name}
+    </div>`
+  ).join('') || '<span style="color:rgba(255,255,255,0.4);font-size:13px;">No files</span>';
+
+  printerQueues = {
+    Auditorium: bookings.filter(b => b.printer === "Auditorium"),
+    Library: bookings.filter(b => b.printer === "Library"),
+    Lab: bookings.filter(b => b.printer === "Lab")
+  };
+
+  updateAllDisplays();
+}
+
+/* ======= PASSCODE PRINT ======= */
+function enterPasscode() {
+  const entered = document.getElementById("enteredPasscode").value.trim();
+  const booking = bookings.find(b => b.passcode == entered);
+
+  if (!booking) {
+    document.getElementById("statusScreen").innerHTML = '<div class="status-dot" style="background:#f87171;"></div> INVALID PASSCODE ❌';
+    return;
+  }
+
+  const printer = booking.printer;
+  printerQueues[printer].push(booking);
+  updateAllDisplays();
+  processQueue(printer);
+}
+
+function updateAllDisplays() {
+  document.getElementById("jobAuditorium").innerText = printerQueues.Auditorium.length;
+  document.getElementById("jobLibrary").innerText = printerQueues.Library.length;
+  document.getElementById("jobLab").innerText = printerQueues.Lab.length;
+}
+
+function processQueue(printer) {
+  if (currentPrinting[printer] || printerQueues[printer].length === 0) return;
+
+  currentPrinting[printer] = printerQueues[printer].shift();
+  updateAllDisplays();
+
+  document.getElementById("statusScreen").innerHTML =
+    `<div class="status-dot" style="background:#fbbf24;animation:pulse 0.6s infinite;"></div> PRINTING: ${printer.toUpperCase()}...`;
+
+  document.getElementById("paper").style.top = "10px";
+
+  setTimeout(() => {
+    document.getElementById("statusScreen").innerHTML =
+      '<div class="status-dot" style="background:#4ade80;animation:none;opacity:1;"></div> PRINT COMPLETED ✔';
+    document.getElementById("paper").style.top = "-120px";
+    currentPrinting[printer] = null;
+    updateAllDisplays();
+    processQueue(printer);
+  }, 3000);
+}
+
+/* ======= CLEAR ALL ======= */
+function clearAllBookings() {
+  if (!confirm("Clear all booking history? This cannot be undone.")) return;
+  bookings = [];
+  localStorage.setItem("bookings", JSON.stringify(bookings));
+  renderBookingsList();
+}
+
+/* ======= RESET ======= */
+function resetToStep1() {
+  document.getElementById("username").value = "";
+  document.getElementById("userEmail").value = "";
+  document.getElementById("bookingTime").value = "";
+  goToStep(1);
+}
+
+/* ======= INIT ======= */
+renderBookingsList();
+lucide.createIcons();
+</script>
+</body>
+</html>
